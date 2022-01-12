@@ -7,86 +7,47 @@
 #define MATHFUNCSDLL_API __declspec(dllimport)
 #endif
 
+
 #define WM_USER_LOGMSG				(7011)
+
+#include "RadarDirAlgorithm.h"
 
 //
 // RADARDIR 프로젝트 내에서 최소 내용만 구조체 정의를 복사한 것임.
 
-#define LENGTH_OF_TASK_ID			(19+1)		//과제ID 문자열 길이 (TBD)
+#define _NULL_CHAR_													(1)
 
-#ifndef ENUM_BANDWIDTH_ENUM
-#define ENUM_BANDWIDTH_ENUM
+#define LENGTH_OF_TASK_ID			                                (19+1)		//과제ID 문자열 길이 (TBD)
+
+#ifndef _MAX_ELNOT_STRING_SIZE_
+#define _MAX_ELNOT_STRING_SIZE_										(10+_NULL_CHAR_)
+#endif
+
+#ifndef _MAX_SIZE_OF_MODECODE
+#define _MAX_SIZE_OF_MODECODE                                       (4)
+#endif
+
+
+#define _MAX_MODECODE_STRING_SIZE_									(2+_NULL_CHAR_)
+
+#ifndef _MAX_RADARMODE_NAME_SIZE
+#define _MAX_RADARMODE_NAME_SIZE									(10)
+#endif
+
+#define _MAX_FUNCTIONCODE_STRING_SIZE_								(4+_NULL_CHAR_)
+
+#ifndef _MAX_NICKNAME_STRING_SIZE_
+#define _MAX_NICKNAME_STRING_SIZE_									(30+_NULL_CHAR_)
+#endif
+
+
+#ifndef _ENUM_BANDWIDTH_
+#define _ENUM_BANDWIDTH_
 typedef enum {
 	en5MHZ_BW=0,
 	en50MHZ_BW,
 
 } ENUM_BANDWIDTH ;
-#endif
-
-#ifndef SRxLOBData_STRUCT
-#define SRxLOBData_STRUCT
-
-#define MAX_FREQ_PRI_STEP				(16)
-#define MAX_RADARNAME						(9+1)
-typedef struct
-{
-	unsigned int uiLOBID;
-	unsigned int uiABTID;
-	unsigned int uiAETID;
-
-	__time32_t tiContactTime;				// 32비트 time_t 로 선언해야 함. 
-	unsigned int tiContactTimems;
-
-	int iSignalType;	
-
-	float	fMeanDOA;										// [0.1도]
-	float fMaxDOA;
-	float fMinDOA;
-
-	int iDIRatio;										// [1 %]
-
-	int		iFreqType;
-	int		iFreqPatternType;			
-	float fFreqPatternPeriod;	  // [us]
-	float fMeanFreq;										// [10KHz]
-	float fMaxFreq;
-	float fMinFreq;
-	int		iFreqPositionCount;
-	float fFreqSeq[MAX_FREQ_PRI_STEP];	// 주파수 단값
-
-	int		iPRIType;
-	int		iPRIPatternType;
-	float	fPRIPatternPeriod;							// [us]
-	float	fMeanPRI;											// [1ns]
-	float	fMaxPRI;
-	float	fMinPRI;
-	float	fPRIJitterRatio;							// [%]
-	int		iPRIPositionCount;
-	float	fPRISeq[MAX_FREQ_PRI_STEP];
-
-	float	fMeanPW;											// 1ns
-	float fMaxPW;
-	float fMinPW;
-
-	float fMeanPA;											// 기존대로
-	float fMaxPA;
-	float fMinPA;
-
-	int		iIsStorePDW;
-	int		iNumOfPDW;
-	int		iCollectorID;
-
-	double	dRadarCollectionLatitude;
-	double	dRadarCollectionLongitude;	
-
-	char aucRadarName[MAX_RADARNAME];
-	int iRadarModeIndex;
-	int iThreatIndex;
-
-	unsigned int uiSeqNum;
-	char	aucTaskID[LENGTH_OF_TASK_ID];
-
-}  SRxLOBData;
 #endif
 
 #ifndef _STR_LOBHEADER
@@ -119,74 +80,148 @@ struct SRxABTHeader
 };
 #endif
 
+#define _NULL_CHAR_													(1)
+
+#define _MAX_MODECODE_STRING_SIZE_									(2+_NULL_CHAR_)
+
+#ifndef _MAX_NICKNAME_STRING_SIZE_
+#define _MAX_NICKNAME_STRING_SIZE_									(30+_NULL_CHAR_)
+#endif
+
+
+#define _MAX_RADARMODENAME_STRING_SIZE_								(30+_NULL_CHAR_)
+
+#define _MAX_FUNCTIONCODE_STRING_SIZE_								(4+_NULL_CHAR_)
+#define _MAX_STATUS_STRING_SIZE_									(20+_NULL_CHAR_)
+
+#define _MAX_BE_NUMBER_STRING_SIZE_									(12+_NULL_CHAR_)
+#define _MAX_USER_COUNTRY_STRING_SIZE_								(4+_NULL_CHAR_)
+#define _MAX_PRIMARY_FUNCTION_STRING_SIZE_                          (4+_NULL_CHAR_)
+#define _MAX_FRIEND_OR_FOE_STRING_SIZE_								(12+_NULL_CHAR_)
+#define _MAX_ADA_STRING_SIZE_										(8+_NULL_CHAR_)
+#define _MAX_DATETIME_STRING_SIZE_									(40+_NULL_CHAR_)
+#define _MAX_DISTINCTION_STRING_SIZE_								(12+_NULL_CHAR_)
+#define _MAX_SYMBOLCODE_STRING_SIZE_								(20+_NULL_CHAR_)
+#define _MAX_LATITUDE_STRING_SIZE_									(15+_NULL_CHAR_)
+#define _MAX_LONGITUDE_STRING_SIZE_									(15+_NULL_CHAR_)
+
+#define _MAX_WEAPON_STRING_SIZE_									(40+_NULL_CHAR_)
+#define _MAX_PLATFORM_STRING_SIZE_									(40+_NULL_CHAR_)
+
+#define _MAX_SIZE_OF_THREATNAME_									(70+_NULL_CHAR_)
+#define _MAX_SIZE_OF_KOREASITENAME_									(70+_NULL_CHAR_)
+#define _MAX_SIZE_OF_FACILITYNAME_									(72+_NULL_CHAR_)
+
+#define _MAX_SIZE_OF_MODECODE                                       (4)
+#define _MAX_PLATFORM_NAME_SIZE                                     (10)
+
 #ifndef _STR_ABTDATA_STRUCT
 #define _STR_ABTDATA_STRUCT
-typedef struct
-{
-	unsigned int uiABTID;
-	unsigned int uiAETID;
+struct SRxABTData {
+    unsigned int uiABTID;
+    unsigned int uiAETID;
 
-	int iSignalType;
+    int iSignalType;
 
-	unsigned int uiCoLOB;
+    unsigned int uiCoLOB;
 
-	__time32_t tiFirstSeenTime;				// 32비트 time_t 로 선언해야 함. 
-	__time32_t tiLastSeenTime;
+    time_t /* __time32_t */ tiFirstSeenTime;				// 32비트 time_t 로 선언해야 함.
+    time_t /* __time32_t */ tiLastSeenTime;
 
-	int iValidity;
+    char szPrimaryELNOT[_MAX_ELNOT_STRING_SIZE_];
+    char szPrimaryModeCode[_MAX_SIZE_OF_MODECODE];								// 1번째 ELNOT
 
-	int		iFreqType;
-	int		iFreqPatternType;			
-	float fFreqPatternPeriodMean;	  // [us]
-	float fFreqPatternPeriodMin;	  // [us]
-	float fFreqPatternPeriodMax;	  // [us]
-	int		iFreqPositionCount;
-	float fFreqSeq[MAX_FREQ_PRI_STEP];	// 주파수 단값
-	float fMeanFreq;										// [10KHz]
-	float fMaxFreq;
-	float fMinFreq;
+    char szModulationCode[_MAX_MODECODE_STRING_SIZE_];
+    char szRadarModeName[_MAX_RADARMODE_NAME_SIZE];
+    char szFuncCode[_MAX_FUNCTIONCODE_STRING_SIZE_];
+    char szPlatform[_MAX_PLATFORM_NAME_SIZE];
+    char szNickName[_MAX_NICKNAME_STRING_SIZE_];
+    char szPlaceNameKor[_MAX_SIZE_OF_KOREASITENAME_];
 
-	int		iPRIType;
-	int		iPRIPatternType;
-	float	fPRIPatternPeriodMean;							// [us]
-	float	fPRIPatternPeriodMin;							// [us]
-	float	fPRIPatternPeriodMax;							// [us]
-	float	fMeanPRI;											// [1ns]
-	float	fMaxPRI;
-	float	fMinPRI;
-	float	fPRIJitterRatio;							// [%]
-	int		iPRIPositionCount;
-	float	fPRISeq[MAX_FREQ_PRI_STEP];
+    int iRadarModePriority;
+    int iRadarPriority;
 
-	float	fMeanPW;											// 1ns
-	float fMaxPW;
-	float fMinPW;
+    int iPolarization;
 
-	float fMeanPA;											// 기존대로
-	float fMaxPA;
-	float fMinPA;
+#if defined(_POCKETSONATA_) || defined(_ELINT_)
+    float fDOAMean;                                 // [0.1도]
+    float fDOAMax;
+    float fDOAMin;
+    float fDOADeviation;				// [0.1도]
+#endif
 
-	unsigned int uiTotalOfPDW;
+    int iFreqType;
+    int iFreqPatternType;
+    float fFreqPatternPeriodMean;	  // [us]
+    float fFreqPatternPeriodMin;	  // [us]
+    float fFreqPatternPeriodMax;	  // [us]
+    float fFreqMean;										// [10KHz]
+    float fFreqMax;
+    float fFreqMin;
+    float fFreqDeviation;
+    int iFreqPositionCount;
+    int iFreqElementCount;
+    float fFreqSeq[MAX_FREQ_PRI_STEP];	// 주파수 단값
 
-	int iRadarModeIndex;
-	int iThreatIndex;
+    int iPRIType;
+    int iPRIPatternType;
+    float fPRIPatternPeriodMean;							// [us]
+    float fPRIPatternPeriodMin;							// [us]
+    float fPRIPatternPeriodMax;							// [us]
+    float fPRIMean;											// [1ns]
+    float fPRIMax;
+    float fPRIMin;
+    float fPRIDeviation;			// [1ns]
+    float fPRIJitterRatio;							// [%]
+    int iPRIPositionCount;
+    int iPRIElementCount;
+    float fPRISeq[MAX_FREQ_PRI_STEP];
 
-	int iPEValid;
-	double dLatitude;							// [deg]
-	double dLongitude;							// [deg]
-	float fCEP;										// [m]
-	float fMajorAxis;							// [m]
-	float fMinorAxis;							// [m]
-	float fTheta;									// [0.1도]
-	float fDistanceErrorOfThreat;	// [m]
+    float fPWMean;											// 1ns
+    float fPWMax;
+    float fPWMin;
+    float fPWDeviation;
 
-	__time32_t tiFinalAlarmTime;
+    float fPAMean;											// 기존대로
+    float fPAMax;
+    float fPAMin;
+    float fPADeviation;
 
-	int iStat;
+    int iScanType;
+    float fMeanScanPeriod;			// [usec]
+    float fMaxScanPeriod;			// [usec]
+    float fMinScanPeriod;			// [usec]
 
-	char aucRadarName[MAX_RADARNAME];
+    int iHasIntraMod;
+    float fMaxIntraMod;
+    float fMinIntraMod;
 
-}  SRxABTData;
+    int iPEValid;
+    float fLatitude;							// [deg]
+    float fLongitude;							// [deg]
+    float fHeight;
+    float fCEP;										// [m]
+    float fMajorAxis;							// [m]
+    float fMinorAxis;							// [m]
+    float fTheta;									// [0.1도]
+    float fDistanceErrorOfThreat;	// [m]
+
+    int iValidity;
+
+    unsigned int uiTotalOfPDW;
+
+    int iRadarModeIndex;
+    int iThreatIndex;
+
+    int iIsManualInput;
+
+    __time32_t tiFinalAlarmTime;
+
+    int iStat;
+
+    char aucRadarName[MAX_RADARNAME];
+
+}  ;
 #endif
 
 #define MAX_ABT_DATA			(100)
@@ -288,6 +323,10 @@ namespace RadarAnlAlgotirhm
 
 		static MATHFUNCSDLL_API bool GetLOBData( STR_LOBDATA *pLOBData );
 		static MATHFUNCSDLL_API bool GetABTData( STR_ABTDATA *pABTData );
+
+#pragma data_seg( ".ioshare" )
+        // static CLog *g_pTheLog;
+#pragma data_seg()
 
 	};
 }

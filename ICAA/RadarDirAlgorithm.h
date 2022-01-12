@@ -11,21 +11,10 @@
 #define WM_USER_LOGMSG				(7011)
 
 
+
 //
 // RADARDIR 프로젝트 내에서 최소 내용만 구조체 정의를 복사한 것임.
 
-#ifndef MATHFUNCSDLL_EXPORTS
-
-#ifndef _LOG_TYPE_
-#define _LOG_TYPE_
-enum LogType {
-	enDebug=0,
-	enNormal,
-	enLineFeed,
-	enError,
-	enEnd,
-};
-#endif
 
 #define LENGTH_OF_TASK_ID			(19+1)		//과제ID 문자열 길이 (TBD)
 
@@ -38,18 +27,18 @@ enum LogType {
 typedef struct {
     unsigned long long int ullTOA;
 
-	int iFreq;
-	int iPulseType;
-	int iPA;
-	int iPW;
-	int iPFTag;
-	int iAOA;
+    int iFreq;
+    int iPulseType;
+    int iPA;
+    int iPW;
+    int iPFTag;
+    int iAOA;
 
 #ifdef _ELINT_
-	float fPh1;
-	float fPh2;
-	float fPh3;
-	float fPh4;
+    float fPh1;
+    float fPh2;
+    float fPh3;
+    float fPh4;
 
 #elif _POCKETSONATA_
     int iPMOP;
@@ -74,10 +63,10 @@ typedef enum {
 #ifndef _STR_ELINT_HEADER_
 #define _STR_ELINT_HEADER_
 typedef struct {
-	unsigned char	aucTaskID[LENGTH_OF_TASK_ID];
-	unsigned int iIsStorePDW;
-	int iCollectorID;
-	ENUM_BANDWIDTH enBandWidth;
+    unsigned char aucTaskID[LENGTH_OF_TASK_ID];
+    unsigned int iIsStorePDW;
+    int iCollectorID;
+    ENUM_BANDWIDTH enBandWidth;
 
     unsigned int uiCount;
 
@@ -124,7 +113,7 @@ struct STR_PDWDATA {
 }  ;
 #endif
 
-#define MAX_RADARNAME						(9+1)
+#define MAX_RADARNAME					(9+1)
 
 #ifndef MAX_FREQ_PRI_STEP
 #define MAX_FREQ_PRI_STEP				(32)
@@ -162,12 +151,12 @@ struct STR_PDWDATA {
 #ifndef SRxLOBData_STRUCT
 #define SRxLOBData_STRUCT
 struct SRxLOBData {
-	unsigned int uiLOBID;
-	unsigned int uiABTID;
-	unsigned int uiAETID;
+    unsigned int uiLOBID;
+    unsigned int uiABTID;
+    unsigned int uiAETID;
 
-	__time32_t tiContactTime;				// 32비트 time_t 로 선언해야 함. 
-	unsigned int tiContactTimems;
+    __time32_t tiContactTime;			// 32비트 time_t 로 선언해야 함.
+    unsigned int tiContactTimems;
 
     char szPrimaryELNOT[_MAX_ELNOT_STRING_SIZE_];
     char szPrimaryModeCode[_MAX_SIZE_OF_MODECODE];								// 1번째 ELNOT
@@ -183,41 +172,44 @@ struct SRxLOBData {
     char szFuncCode[_MAX_FUNCTIONCODE_STRING_SIZE_];
     char szNickName[_MAX_NICKNAME_STRING_SIZE_];
 
+#ifndef _ONPOOM_
     int iPolarization;                              // 극성
+#endif
+
     int iRatioOfPOL;                                // 극성 신뢰도
 
-	int iSignalType;	
+    int iSignalType;
 
     float fDOAMean;                                 // [0.1도]
     float fDOAMax;
     float fDOAMin;
-    float fDOADeviation;				// [0.1도]
+    float fDOADeviation;							// [0.1도]
     float fDOASDeviation;
 
-	int iDIRatio;										// [1 %]
+    int iDIRatio;					// [1 %]
 
-	int iFreqType;
-	int	iFreqPatternType;			
-	float fFreqPatternPeriod;	  // [us]
+    int iFreqType;
+    int iFreqPatternType;
+    float fFreqPatternPeriod;                       // [us]
     float fFreqMean;				// [10KHz]
     float fFreqMax;
     float fFreqMin;
     float fFreqDeviation;                           //
-	int	iFreqPositionCount;
+    int iFreqPositionCount;
     int iFreqElementCount;
-	float fFreqSeq[MAX_FREQ_PRI_STEP];	// 주파수 단값
+    float fFreqSeq[MAX_FREQ_PRI_STEP];	// 주파수 단값
 
-	int	iPRIType;
-	int	iPRIPatternType;
-	float fPRIPatternPeriod;							// [us]
+    int iPRIType;
+    int iPRIPatternType;
+    float fPRIPatternPeriod;		// [us]
     float fPRIMean;				// [1ns]
     float fPRIMax;
     float fPRIMin;
     float fPRIDeviation;			// [1ns]
-	float	fPRIJitterRatio;							// [%]
-	int		iPRIPositionCount;
+    float fPRIJitterRatio;			// [%]
+    int iPRIPositionCount;
     int iPRIElementCount;
-	float	fPRISeq[MAX_FREQ_PRI_STEP];
+    float fPRISeq[MAX_FREQ_PRI_STEP];
 
     float fPWMean;				// 1ns
     float fPWMax;
@@ -229,6 +221,7 @@ struct SRxLOBData {
     float fPAMin;
     float fPADeviation;			// 기존대로
 
+#ifndef _ONPOOM_
     int iScanType;
     //int iDetailScanType;
     float fScanPeriod;			// [msec]
@@ -240,6 +233,7 @@ struct SRxLOBData {
     float fMOPMeanFreq;
     float fMOPFreqDeviation;
 
+
     float fShipLatitude;
     float fShipLongitude;
     float fPitchAngle;
@@ -247,29 +241,29 @@ struct SRxLOBData {
     float fHeadingAngle;
     float fAltitude;
     int iValidity;
+#endif
 
     int iIsStoreData;
-	int		iNumOfPDW;
+    int iNumOfPDW;
     int iNumOfIQ;
 
-    float fRadarLatitude;
-    float fRadarLongitude;
-
-	char aucRadarName[MAX_RADARNAME];
-	int iRadarModeIndex;
+    char aucRadarName[MAX_RADARNAME];
+    int iRadarModeIndex;
     //int iThreatIndex;
 
 
 #ifdef _POCKETSONATA_
+	float fRadarLatitude;
+	float fRadarLongitude;		
 
 #elif _ELINT_
-    double	dRadarCollectionLatitude;
-    double	dRadarCollectionLongitude;	
+	float fRadarLatitude;
+	float fRadarLongitude;		
 
     int	iCollectorID;
 
-	unsigned int uiSeqNum;
-	char	aucTaskID[LENGTH_OF_TASK_ID];
+    unsigned int uiSeqNum;
+    char aucTaskID[LENGTH_OF_TASK_ID];
 
 #else
 
@@ -277,6 +271,8 @@ struct SRxLOBData {
 
 }  ;
 #endif
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // 컴파일 방법
@@ -360,5 +356,5 @@ namespace RadarDirAlgotirhm
 
 }
 
-#endif
+
 
