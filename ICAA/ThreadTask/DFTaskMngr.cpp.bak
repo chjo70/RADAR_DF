@@ -1,0 +1,1635 @@
+#include "stdafx.h"
+#include "DFTaskMngr.h"
+#include "..\MsgQueueThread.h"
+#include "..\ThreadTask/DFMsgDefnt.h"
+
+#define CSV_BUF				30
+#define PH_DIFF				1.40625
+
+//LMS_ADD_20190704
+_stBigArray* pstBigArray; //LMS_ADD_20171221
+CDFTaskMngr* CDFTaskMngr::m_pInstance=nullptr;
+void CALLBACK GRColectStatusTimer(PVOID lpParam, BOOLEAN TimerOrWaitFired);
+void CALLBACK PDWConnStatusTimer(PVOID lpParam, BOOLEAN TimerOrWaitFired);
+
+CDFTaskMngr::CDFTaskMngr()
+:m_hCommIF_DFTaskMngr(m_hCommIF)
+{
+	// ini파일에서 Server/Client 관련 정보 얻어오기
+	//등록정보
+	//시스템 설정 정보
+	//과제 정보
+	//과제 시작정보
+
+	//m_hCommIF.RegisterOpcode(0x12400000, this); 
+	m_LinkInfo = 0;
+	m_POSNIP = GetLastIP();
+	m_strAntFullFileName = _T("");
+
+	//FOR TEST
+	m_LinkInfo = LINK1_ID;
+	m_strAntFullFileName.Format("C:\\IdexFreq\\LIG_MF_Data_no1.txt"); 
+	//FOR TEST
+	
+	if(m_POSNIP == SYS_CLR_EQUIP1)
+	{
+		m_LinkInfo = LINK1_ID;
+		m_strAntFullFileName.Format("C:\\IdexFreq\\LIG_MF_Data_no1.txt"); 
+	}
+	else if(m_POSNIP == SYS_CLR_EQUIP2)
+	{
+		m_LinkInfo = LINK2_ID;
+		m_strAntFullFileName.Format("C:\\IdexFreq\\LIG_MF_Data_no2.txt"); 
+	}
+	else if(m_POSNIP == SYS_CLR_EQUIP3)
+	{
+		m_LinkInfo = LINK3_ID;
+		m_strAntFullFileName.Format("C:\\IdexFreq\\LIG_MF_Data_no3.txt"); 
+	}
+	else;
+
+
+	//시스템 설정
+	m_hCommIF.RegisterOpcode(MakeOPCode(CMDCODE_DF_RX_SYSTEM_SET_INFO, DEVICECODE_BRA, DEVICECODE_TRD), this);	
+
+	//수집과제 요구
+	m_hCommIF.RegisterOpcode(MakeOPCode(CMDCODE_DF_RX_TASK_REQ_LIST, DEVICECODE_BRA, DEVICECODE_TRD), this);	
+
+	//과제시작 요구
+	m_hCommIF.RegisterOpcode(MakeOPCode(CMDCODE_DF_TX_STARTCOLLECT_RSLT, DEVICECODE_BRA, DEVICECODE_TRD), this);		
+
+	//PDW 결과
+	m_hCommIF.RegisterOpcode(MakeOPCode(CMDCODE_DF_RX_PDW_RSLT, DEVICECODE_TDP, DEVICECODE_TRD), this);
+
+	//수집설정 응답
+	m_hCommIF.RegisterOpcode(MakeOPCode(CMDCODE_DF_TX_TASK_REV_RSLT, DEVICECODE_TDP, DEVICECODE_TRD), this);
+
+	//수집완료 상태 전송
+	m_hCommIF.RegisterOpcode(MakeOPCode(CMDCODE_DF_RX_PDW_COLECT_DONE_STAT, DEVICECODE_TDP, DEVICECODE_TRD), this);
+
+	//채널보정 요구
+	m_hCommIF.RegisterOpcode(MakeOPCode(CMDCODE_DF_TX_CHNEL_CORECT, DEVICECODE_BRA, DEVICECODE_TRD), this);
+
+	//안테나 보정 데이터 저장버퍼
+	pstBigArray = (_stBigArray *)malloc(sizeof(struct _stBigArray)); //LMS_ADD_20171221
+
+	m_iMode = 0;
+	m_Freq = 0;
+	m_strFilePath_Chennel = _T("");
+	m_pdwCntZero = 0;
+	m_bisRetrySigz = false;
+	m_iTaskCnt = 0;
+	m_iNextTaskCnt = 1;
+
+	m_hRetryColectTimerQueue = NULL;
+	m_hRetryColectStatTimer = NULL;
+
+	m_hPDWConStatTimer = NULL;
+	m_hPDWConTimerQueue = NULL;
+
+	m_strFilePath_Chennel.Format("C:\\IdexFreq\\CHData_Done.csv"); 
+
+	//InitFileFromStartChCorrect();
+	/*ofstream fout;
+	fout.open(m_strFilePath_Chennel, ios::out | ios::binary | ios::trunc);
+	fout.close();*/
+
+	// 시작시 한번만 호출하면 됩니다.
+	RadarDirAlgotirhm::RadarDirAlgotirhm::Init();
+
+	//안테나보정데이터 로딩
+	LoadDfCalRomDataPh();
+	SetDFCrectFreqList();
+	GetAutoFreqChCorrect(); //채널보정주파수 리스트 정보
+
+	//채널보정 시작
+	//PDE발생판 연결상태 확인 후 호출
+	StartCheckPDWConTimer();
+	/*if(m_hCommIF.GetPDWConnStatus() == true)
+	StartChannelCorrect(MODE_INIT_TYPE);*/
+}
+
+CDFTaskMngr::~CDFTaskMngr()
+{
+	//m_hCommIF.UnregisterOpcode(0x12400000, this);
+
+	//시스템 설정
+	m_hCommIF.UnregisterOpcode(MakeOPCode(CMDCODE_DF_RX_SYSTEM_SET_INFO, DEVICECODE_BRA, DEVICECODE_TRD), this);
+
+	//수집과제 요구
+	m_hCommIF.UnregisterOpcode(MakeOPCode(CMDCODE_DF_RX_TASK_REQ_LIST, DEVICECODE_BRA, DEVICECODE_TRD), this);	
+
+	//수집시작 요구
+	m_hCommIF.UnregisterOpcode(MakeOPCode(CMDCODE_DF_TX_STARTCOLLECT_RSLT, DEVICECODE_BRA, DEVICECODE_TRD), this);
+
+	//PDW 결과
+	m_hCommIF.UnregisterOpcode(MakeOPCode(CMDCODE_DF_RX_PDW_RSLT, DEVICECODE_TDP, DEVICECODE_TRD), this);
+
+	//수집설정 응답
+	m_hCommIF.UnregisterOpcode(MakeOPCode(CMDCODE_DF_TX_TASK_REV_RSLT, DEVICECODE_TDP, DEVICECODE_TRD), this);
+
+	//수집완료 상태 전송
+	m_hCommIF.UnregisterOpcode(MakeOPCode(CMDCODE_DF_RX_PDW_COLECT_DONE_STAT, DEVICECODE_TDP, DEVICECODE_TRD), this);
+
+	StopRetryCollectStatusTimer();
+	StopPDWConnStatusTimer();
+	// 프로그램 종료시 한번만 호출하면 됩니다.
+	RadarDirAlgotirhm::RadarDirAlgotirhm::Close();
+}
+
+CDFTaskMngr* CDFTaskMngr::GetInstance()
+{
+	if (m_pInstance == nullptr)
+	{
+		m_pInstance = new CDFTaskMngr();		
+	}
+
+	return m_pInstance;
+}
+
+void CDFTaskMngr::Receive(unsigned int i_uiOpcode, unsigned short i_usSize, unsigned char i_ucLink, unsigned char i_ucRevOperID, unsigned char ucOpertorID, void *i_pvData)
+{
+	TRACE("[Log] DFTaskMngr received.\n");
+
+	// 수신단에서 Msg 데이터 형성
+	STMsg stInstanceMsg;
+
+	stInstanceMsg.uiOpcode = i_uiOpcode;
+	stInstanceMsg.usMSize = i_usSize;
+	stInstanceMsg.ucRevOperID = i_ucRevOperID;
+	stInstanceMsg.ucLinkID = i_ucLink;
+	stInstanceMsg.ucOperatorID = ucOpertorID;
+
+	memcpy(stInstanceMsg.buf, i_pvData, i_usSize);
+
+	// 쓰레드 처리를 위해 Msg Queue에 집어넣기
+	PushMsg(stInstanceMsg); 
+
+	m_cond.LIGSetEvent();
+}
+
+
+void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
+{
+	// OPCODE별로 경우를 나열하여 처리하는 로직 구현 필요
+	// 하단에 구현
+
+	TRACE("[Log] DFTaskMngr ProcessMsg 호출.\n");
+
+	UEL_BITMAP_OPCode stOpCode= UEL_BITMAP_OPCode() ;
+	stOpCode.w32 = i_stMsg.uiOpcode;
+
+
+	switch(stOpCode.bData.uchCMDCode)
+	{
+	case CMDCODE_DF_RX_SYSTEM_SET_INFO: //시스템 설정(분석->방탐-> PDW)
+		{
+			//Step 1. 시스템 설정 메시지 전송 (PDW 발생판)
+			STxSystemVariable stSystemVal;
+			memcpy(&stSystemVal, i_stMsg.buf, i_stMsg.usMSize);
+
+			int opPDW_SetsysVal = MakeOPCode(CMDCODE_DF_TX_PDW_SYS_SET, DEVICECODE_TRD, DEVICECODE_TDP);
+
+			m_hCommIF.Send(opPDW_SetsysVal, sizeof(stSystemVal), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&stSystemVal); //134고유 ip끝번호 //주파수설정
+
+		}
+		break;
+	case CMDCODE_DF_RX_TASK_REQ_LIST: //수집과제 요구 (분석->방탐)
+		{
+			//수집과제 수신
+
+			//수집과제 수신 결과 전송 (방탐->분석)
+			ProcessTaskMsg(i_stMsg.buf);
+		}
+		break;
+
+	case CMDCODE_DF_TX_STARTCOLLECT_RSLT: //수집과제 시작(분석->방탐)
+		{
+			STxAcqStartRequest stAcqStartReq;
+			memcpy(&stAcqStartReq, i_stMsg.buf, i_stMsg.usMSize);
+			STxAcqStartRslt acqStartRslt;
+
+			if(stAcqStartReq.uiMode == ACQ_START)
+			{
+				m_iMode = MODE_CRT_TYPE;
+				iter = m_listTaskData.begin();
+				m_stCurTaskData = m_listTaskData.front();
+
+				if(m_listTaskData.size() > 1)
+				{
+					iter++;
+					m_iNextTaskCnt++;
+				}				
+
+				//첫번째 과제
+				//{
+				//Step 1. 온품에 레이더 주파수 설정 제어 명령 전송
+				SetFreqToRadarUnit(m_stCurTaskData.uiFreq);
+
+				//PDW 수집설정
+				SetPDWAcqCollect(m_stCurTaskData);
+
+				//PDW 응답받으면
+
+				//PDW 요청
+
+				//step 2. 스펙트럼 전송 요청				
+				SendSptrCmdToPDW();				
+			}
+			else if(stAcqStartReq.uiMode == ACQ_STOP)
+			{
+				//스펙트럼 전송 중지
+				//PDW 중지(ICD 추가 필요)
+
+				//IQ 운용 중지
+				
+
+				//정지결과 전송(방탐->분석)
+			}
+			else if(stAcqStartReq.uiMode == ACQ_RESTART)
+			{
+				//재 시작 처리
+
+				//재시작결과 전송(방탐->분석)
+			}
+			else if(stAcqStartReq.uiMode == ACQ_PAUSE)
+			{
+				//일시정지 처리
+
+				//일시정지결과 전송(방탐->분석)
+			}
+			else;		
+
+
+			//시작결과 전송(방탐->분석)	//결과 전송(시작,중지, 재시작, 일시정지)		
+			int opcode_BD = MakeOPCode(CMDCODE_DF_TX_STARTCOLLECT_RSLT, DEVICECODE_TRD, DEVICECODE_BRA);
+						
+			acqStartRslt.uiMode = stAcqStartReq.uiMode;
+			acqStartRslt.uiResult = 0;
+
+			m_hCommIF.Send(opcode_BD, sizeof(acqStartRslt), m_LinkInfo, Equip_Rev_BD, m_POSNIP, (void*)&acqStartRslt); //134고유 ip끝번호 //주파수설정			
+		}
+		break;
+
+		case CMDCODE_DF_RX_PDW_COLECT_DONE_STAT: //수집완료 상태 전송 결과
+		{
+			_PDW_COLECTDONE_STAT stColectDoneStat;
+			memcpy(&stColectDoneStat, i_stMsg.buf, i_stMsg.usMSize);
+			
+			if(stColectDoneStat.iNumOfPDW <= 10 || stColectDoneStat.iNumOfPDW == 0)
+				m_pdwCntZero++;
+
+			if(m_pdwCntZero >= 10)
+			{
+				//m_bPdwCntZeroFlag = true;
+				m_pdwCntZero = 0;
+				RetrySignalSend();
+				stColectDoneStat.uiDoneStatus = 0;
+			}
+
+			TRACE("수집완료 상태 전송 결과 PDW 개수 %d \n", stColectDoneStat.iNumOfPDW);
+			TRACE("NOISE LEVEL #1 %d \n", (stColectDoneStat.iNoiseLevel_1 /4) - 110 );
+			TRACE("NOISE LEVEL #2 %d \n", (stColectDoneStat.iNoiseLevel_2 /4) - 110 );
+			TRACE("NOISE LEVEL #3 %d \n", (stColectDoneStat.iNoiseLevel_3 /4) - 110 );
+			TRACE("NOISE LEVEL #4 %d \n", (stColectDoneStat.iNoiseLevel_4 /4) - 110 );
+			TRACE("NOISE LEVEL #5 %d \n", (stColectDoneStat.iNoiseLevel_5 /4) - 110 );
+
+			int DoneFlag = 8;
+			bool isbDone = false;
+			isbDone = DoneFlag & stColectDoneStat.uiDoneStatus; 
+			TRACE("PDW 수집완료 상태 Flag %d \n", isbDone);
+
+			//if(isbDone != 1 ||  stColectDoneStat.iNumOfPDW < 10) //재요청 0:수집중, 1: 시간, 2:개수, 0xF: 오류
+			if(isbDone != 1 ||  stColectDoneStat.iNumOfPDW < 10 /*|| m_bPdwCntZeroFlag == true*/)  
+			{				
+				if(m_hRetryColectTimerQueue == NULL)
+				{							
+					m_hRetryColectTimerQueue = CreateTimerQueue();
+					CreateTimerQueueTimer(&m_hRetryColectStatTimer, m_hRetryColectTimerQueue, (WAITORTIMERCALLBACK)GRColectStatusTimer, this, COLSTAT_START_INTERVAL, COLSTAT_INTERVAL, 0);
+				}				
+			}
+			else
+			{
+				m_bisRetrySigz = false;
+				if(m_hRetryColectTimerQueue != NULL)
+					StopRetryCollectStatusTimer();
+				
+				//PDW 요청
+				if(m_iMode == MODE_INIT_TYPE) //채널보정
+				{
+					//PDW 요청
+					int nPDWCnt = stColectDoneStat.iNumOfPDW;
+					int opcode_PDW = MakeOPCode(CMDCODE_DF_TX_PDW_REQ, DEVICECODE_TRD, DEVICECODE_TDP);
+
+					_PDW_DATA_Req req_PDWData;		 
+					strcpy( (char *) req_PDWData.aucTaskID, "채널보정_초기셋팅" );
+					req_PDWData.iPDWCnt = 10;
+
+					m_hCommIF.Send(opcode_PDW, sizeof(req_PDWData), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&req_PDWData); //134고유 ip끝번호 //주파수설정
+				}
+				else if(m_iMode == MODE_CRT_TYPE)
+				{
+					//PDW 요청
+					int nPDWCnt = stColectDoneStat.iNumOfPDW;
+					int opcode_PDW = MakeOPCode(CMDCODE_DF_TX_PDW_REQ, DEVICECODE_TRD, DEVICECODE_TDP);
+
+					_PDW_DATA_Req req_PDWData;		 
+					strcpy( (char *) req_PDWData.aucTaskID, (char *)m_stCurTaskData.aucTaskID);
+					req_PDWData.iPDWCnt = nPDWCnt;
+
+					m_hCommIF.Send(opcode_PDW, sizeof(req_PDWData), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&req_PDWData); 
+				}				
+				else;
+			}
+		}
+		break;
+
+		case CMDCODE_DF_RX_PDW_RSLT: //PDW 데이터 결과
+		{
+			RX_STR_PDWDATA stPDWData;
+			TRACE("recv buf size %d\n", i_stMsg.usMSize);
+			memcpy(&stPDWData, i_stMsg.buf, i_stMsg.usMSize);			
+
+			PDW_DATA *pPDW;
+
+			/*STR_PDWDATA_LIST stPDWDataToAOA;
+			PDW *pPDWToAOA;*/
+
+			STR_PDWDATA stPDWDataToAOA;
+			_PDW *pPDWToAOA;
+
+			int nCnt = stPDWData.count;
+			pPDW = stPDWData.stPDW;
+			pPDWToAOA = stPDWDataToAOA.stPDW;
+
+			//////////////LOB데이터 생성
+			strcpy( (char *) stPDWDataToAOA.aucTaskID, (char *) stPDWData.aucTaskID );
+			//stPDWDataToAOA.iIsStorePDW = stPDWData.stPDW;			// 0 또는 1, PDW 저장되었으면 1로 설정함.
+			stPDWDataToAOA.iCollectorID = stPDWData.iCollectorID;			// 1, 2, 3 중에 하나이어야 한다. (수집소)
+			stPDWDataToAOA.count = nCnt;				// 수집 PDW 개수는 최대 4096 개
+			
+			/* data 확인 필요 */
+			stPDWDataToAOA.enBandWidth = en5MHZ_BW;
+			//////////////LOB데이터 생성
+
+			int Freq;
+			float fph[5] = {0.0,};	
+
+			for(int i = 0; i <nCnt; ++i )
+			{					
+				//Freq = pPDW->iFreq;
+				Freq = m_Freq;
+				
+				fph[0] = (pPDW->iph[0] * PH_DIFF);
+				fph[1] = (pPDW->iph[1] * PH_DIFF);
+				fph[2] = (pPDW->iph[2] * PH_DIFF);
+				fph[3] = (pPDW->iph[3] * PH_DIFF);
+				fph[4] = (pPDW->iph[4] * PH_DIFF);				
+
+				TRACE("Freq_r %d, llTOA %I64d, Freq %d, iPA %d, iPulseType %d, iPW %d, iPFTag %d, iph_1 %d, iph_2 %d, iph_3 %d, iph_4 %d, iph_5 %d  \n",
+					Freq, pPDW->llTOA, pPDW->iFreq, pPDW->iPA, pPDW->iPulseType, pPDW->iPW, pPDW->iPFTag, pPDW->iph[0], pPDW->iph[1], pPDW->iph[2],
+					pPDW->iph[3], pPDW->iph[4]);			
+
+				if(m_iMode == MODE_INIT_TYPE) //채널보정
+				{
+					if(i == 5)
+					{
+						SetDataChanelCorrect(Freq, fph); //저장 //맴버의 주파수설정값으로 입력할지 확인
+						break;
+					}
+				}	
+				else if(m_iMode == MODE_CRT_TYPE )	//정확도
+				{
+					int idxFreq = 0;
+					int iCloseFreq = 0;
+					iCloseFreq = GetCloseDFFreq(Freq);
+					idxFreq = GetIndexFreq(iCloseFreq);
+					int i_AOA =0;
+					//이명식 수석님 함수 호출해서 pdw 위상차를 aoa 변환 후
+					i_AOA = GetAOADataFromAlgrism(Freq, idxFreq, fph);
+					
+					pPDWToAOA->iFreq = pPDW->iFreq;
+					pPDWToAOA->iAOA = i_AOA;
+					pPDWToAOA->iPulseType = pPDW->iPulseType;
+					pPDWToAOA->iPA = pPDW->iPA;
+					pPDWToAOA->iPW = pPDW->iPW;
+					pPDWToAOA->llTOA = pPDW->llTOA;		
+				}
+				else;
+
+				++ pPDW;
+				++ pPDWToAOA;
+			}
+
+			///////////////////////////////////////////////////////////////////////////////
+			//조철희 수석님의 PDW데이타에서 LOB 추출 알고리즘 호출			
+			RadarDirAlgotirhm::RadarDirAlgotirhm::Start( & stPDWDataToAOA );
+
+			int nCoLOB=RadarDirAlgotirhm::RadarDirAlgotirhm::GetCoLOB();
+
+			SRxLOBData *pLOBData=RadarDirAlgotirhm::RadarDirAlgotirhm::GetLOBData();
+			///////////////////////////////////////////////////////////////////////////////
+			SRxLOBData stLOB;			
+			//lob 데이터 레이더 분석에 전송
+			int opcode_LOB = MakeOPCode(CMDCODE_LOB_SEND_TO_DP, DEVICECODE_TRD, DEVICECODE_TDP);						
+			m_hCommIF.Send(opcode_LOB, sizeof(stLOB), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)pLOBData); 
+
+			//다음과제에 대해 PDW요청
+			ReqPDWNextTask();
+
+			//재귀호출
+			if(m_iMode == MODE_INIT_TYPE) // 채널보정
+			{
+				STAutoFreqDataLIst stAutoFreq = m_listAutoFreqData.front();
+				m_listAutoFreqData.pop_front();
+
+				if(!m_listAutoFreqData.empty())
+				{
+					StartChannelCorrect(m_iMode);
+				}
+				else
+				{
+					//V/UHF 제어 설정
+					int opcode = MakeOPCode(CMDCODE_UHF_TX_SET_ANT_MODE, DEVICECODE_TRD, DEVICECODE_TVU);	
+					STxUHFSetAntMode SetAntMode;
+					SetAntMode.ucCalAntMode = 1;
+					m_hCommIF.Send(opcode, sizeof(SetAntMode),m_LinkInfo, Equip_Rev_VU, m_POSNIP, (void*)&SetAntMode); //134고유 ip끝번호 // 경로설정
+					GetAutoFreqChCorrect();
+					TRACE("방탐보정 끝 \n");
+				}			
+			}
+		}
+		break;
+
+	case CMDCODE_DF_TX_CHNEL_CORECT: //채널보정
+		{
+			//채널보정 진행 후
+			//스펙트럼 전송 중지
+			//PDW 중지(ICD 추가 필요)
+			//IQ 운용 중지
+
+
+			//StartChannelCorrect(MODE_INIT_TYPE);
+			StartCheckPDWConTimer();
+			//채널보정 결과 전송(100)
+			int opcode_BRA = MakeOPCode(CMDCODE_DF_TX_CHNEL_CORECT, DEVICECODE_TRD, DEVICECODE_BRA);
+			STxChCorrectRslt chCorrectRslt;
+			chCorrectRslt.uiResult = 100;
+
+			m_hCommIF.Send(opcode_BRA, sizeof(chCorrectRslt), m_LinkInfo, Equip_Rev_BD, m_POSNIP, (void*)&chCorrectRslt); 
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
+void CALLBACK GRColectStatusTimer(PVOID lpParam, BOOLEAN TimerOrWaitFired)
+{
+	CDFTaskMngr* pThis = ((CDFTaskMngr*)lpParam);
+
+	//pThis->m_PingThread.StartPing(NULL, PING_ID_HEARTBEAT);
+
+	pThis->RetryCollectStatusReq();
+}
+
+void CDFTaskMngr::RetryCollectStatusReq()
+{
+	int opcode_done_status = MakeOPCode(CMDCODE_DF_RX_PDW_COLECT_DONE_STAT, DEVICECODE_TRD, DEVICECODE_TDP);
+
+	_PDW_COLECTDONE_STAT_REQ  req_collStat;
+	req_collStat.uiDoneStatus = 1;
+
+	m_hCommIF.Send(opcode_done_status, sizeof(req_collStat), LINK1_ID, Equip_Rev_DP, 10, (void*)&req_collStat); 
+}
+
+void CDFTaskMngr::SendDummyMsg()
+{
+	char acTemp[sizeof(unsigned short)*8192+sizeof(int)+sizeof(unsigned int)] = {0,};
+
+	acTemp[0] = 1;
+	acTemp[1] = 2;
+	acTemp[2] = 3;	
+
+	m_hCommIF.Send(0x82022300,sizeof(unsigned short)*8192+sizeof(int)+sizeof(unsigned int),0, 0, 0, (void*)&acTemp);
+}
+
+void CDFTaskMngr::StopRetryCollectStatusTimer()
+{
+	if ( m_hRetryColectTimerQueue == NULL )
+		return;
+
+	bool bRtn = DeleteTimerQueueTimer(m_hRetryColectTimerQueue, m_hRetryColectStatTimer, NULL);
+
+	if(bRtn)
+	{
+		m_hRetryColectTimerQueue = NULL;
+	}
+	else
+	{
+		if ( ERROR_IO_PENDING == GetLastError() || m_hRetryColectTimerQueue == NULL || m_hRetryColectStatTimer == NULL )
+		{
+			m_hRetryColectTimerQueue = NULL;
+		}
+		else
+		{
+			while(DeleteTimerQueueTimer(m_hRetryColectTimerQueue, m_hRetryColectStatTimer, NULL) == 0)
+			{
+				if ( ERROR_IO_PENDING == GetLastError() || m_hRetryColectTimerQueue == NULL || m_hRetryColectStatTimer == NULL )
+				{
+					m_hRetryColectTimerQueue = NULL;
+					break;
+				}
+			}			
+		}
+	}	
+}
+
+void CDFTaskMngr::StopPDWConnStatusTimer()
+{
+	if ( m_hPDWConTimerQueue == NULL )
+		return;
+
+	bool bRtn = DeleteTimerQueueTimer(m_hPDWConTimerQueue, m_hPDWConStatTimer, NULL);
+
+	if(bRtn)
+	{
+		m_hPDWConTimerQueue = NULL;
+	}
+	else
+	{
+		if ( ERROR_IO_PENDING == GetLastError() || m_hPDWConTimerQueue == NULL || m_hPDWConStatTimer == NULL )
+		{
+			m_hPDWConTimerQueue = NULL;
+		}
+		else
+		{
+			while(DeleteTimerQueueTimer(m_hPDWConTimerQueue, m_hPDWConStatTimer, NULL) == 0)
+			{
+				if ( ERROR_IO_PENDING == GetLastError() || m_hPDWConTimerQueue == NULL || m_hPDWConStatTimer == NULL )
+				{
+					m_hPDWConTimerQueue = NULL;
+					break;
+				}
+			}			
+		}
+	}	
+}
+
+void CDFTaskMngr::RetrySignalSend()
+{
+	m_bisRetrySigz = true;
+	
+	UINT64 uifrequency = (UINT64)((double)m_Freq * 1000000.0f);//Hz
+	bool bfail = false;
+
+	CString  strcommand;
+	strcommand.Format("SENSe:FREQuency:CENTer %I64d", uifrequency);
+	bfail = g_RcvFunc.SCPI_CommendWrite(strcommand);	
+
+	TRACE("result_1 %d\n", bfail);
+	
+	uifrequency = -35;
+	strcommand.Format("SENSe:GCONtrol %I64d", uifrequency);
+	bfail = g_RcvFunc.SCPI_CommendWrite(strcommand);	
+	TRACE("GCONtrol %d\n", bfail);
+
+	int opcode_Coll = MakeOPCode(CMDCODE_DF_TX_PDW_COLECT_SET, DEVICECODE_TRD, DEVICECODE_TDP); //신호수집 설정
+
+	_PDW_COLECTSET set_collect;
+	strcpy( (char *) set_collect.aucTaskID, "채널보정_초기셋팅" );
+		
+	set_collect.iRxThresholdValue = (-35+110)*4;
+	set_collect.uiAcquisitionTime = 100000000;
+	set_collect.uiNumOfAcqPulse = 10; // 윤상범
+	set_collect.uiNBDRBandwidth =1;	
+
+	m_hCommIF.Send(opcode_Coll, sizeof(set_collect), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&set_collect); //수집완료 상태 요청	
+}
+
+void CDFTaskMngr::ProcessTaskMsg(void *i_pvData)
+{
+	//UINT nTaskNum = 0;
+	STxAcqTraskRequest AcqtaskReq; 
+	memcpy(&AcqtaskReq, i_pvData, sizeof(AcqtaskReq));
+
+	//nTaskNum = ENDIAN32(AcqtaskReq.uiNumOfTask); 
+
+	m_iTaskCnt = AcqtaskReq.uiNumOfTask; 
+
+	STxAcqTraskData *pTaskData;
+	pTaskData = AcqtaskReq.stTaskData;
+
+	STxAcqTraskData stTaskMngrData;
+
+	for(int i = 0; i <m_iTaskCnt; ++i )
+	{					
+		//과제정보 관리		
+		/*stTaskMngrData.iRxThresholdValue = ENDIAN32(pTaskData->iRxThresholdValue);
+		stTaskMngrData.uiAcquisitionTime = ENDIAN32(pTaskData->uiAcquisitionTime);
+		stTaskMngrData.uiNBDRBandWidth = ENDIAN32(pTaskData->uiNBDRBandWidth);
+		stTaskMngrData.uiNumOfAcqPuls = ENDIAN32(pTaskData->uiNumOfAcqPuls);
+		stTaskMngrData.uiFreq = ENDIAN32(pTaskData->uiFreq);*/
+
+		memcpy(stTaskMngrData.aucTaskID, pTaskData->aucTaskID, sizeof(stTaskMngrData.aucTaskID)); 						
+		stTaskMngrData.iRxThresholdValue = pTaskData->iRxThresholdValue;
+		stTaskMngrData.uiAcquisitionTime = pTaskData->uiAcquisitionTime;
+		stTaskMngrData.uiNBDRBandWidth = pTaskData->uiNBDRBandWidth;
+		stTaskMngrData.uiNumOfAcqPuls = pTaskData->uiNumOfAcqPuls;
+		stTaskMngrData.uiFreq = pTaskData->uiFreq;
+		m_Freq = stTaskMngrData.uiFreq / 1000;
+		//m_uiLastCurFreq = m_Freq;
+		m_listTaskData.push_back(stTaskMngrData);				
+			
+		++ pTaskData;
+	}		
+
+	//수집과제 수신 결과 전송 (방탐->분석)
+	//send operator
+	int opcode_BD = MakeOPCode(CMDCODE_DF_TX_TASK_REV_RSLT, DEVICECODE_TRD, DEVICECODE_BRA);
+	//int OPCODE_OPER = ENDIAN32(opcode_PDW);
+
+	SRxTSGCtrlResult taskRslt;
+	taskRslt.iResult = 1;
+
+	//taskRslt.iResult = ENDIAN32(taskRslt.iResult);
+
+	m_hCommIF.Send(opcode_BD, sizeof(taskRslt), m_LinkInfo, Equip_Rev_BD, m_POSNIP, (void*)&taskRslt); //134고유 ip끝번호 //주파수설정
+}
+
+void CDFTaskMngr::ReqPDWNextTask()
+{
+	if(m_iTaskCnt != 1)
+	{
+		m_stCurTaskData = *(iter);
+
+		if(m_iTaskCnt ==  m_iNextTaskCnt)
+		{
+			iter = m_listTaskData.begin();
+			m_stCurTaskData = *(iter);
+		}
+
+		iter++;
+		m_iNextTaskCnt ++;
+	}
+	
+
+	//Step 1. 온품에 레이더 주파수 설정 제어 명령 전송
+	SetFreqToRadarUnit(m_stCurTaskData.uiFreq);
+
+	//PDW 수집설정
+	SetPDWAcqCollect(m_stCurTaskData);
+
+	//step 2. 스펙트럼 전송 요청				
+	SendSptrCmdToPDW();				
+}
+
+void CDFTaskMngr::StartCheckPDWConTimer()
+{
+	if(m_hPDWConTimerQueue == NULL)
+	{							
+		m_hPDWConTimerQueue = CreateTimerQueue();
+		CreateTimerQueueTimer(&m_hPDWConStatTimer, m_hPDWConTimerQueue, (WAITORTIMERCALLBACK)PDWConnStatusTimer, this, PDWCONNSTAT_INTERVAL, PDWCONNSTAT_INTERVAL, 0);
+	}		
+}
+
+void CALLBACK PDWConnStatusTimer(PVOID lpParam, BOOLEAN TimerOrWaitFired)
+{
+	CDFTaskMngr* pThis = ((CDFTaskMngr*)lpParam);	
+
+	pThis->CheckPDWConnStatus();
+}
+
+void CDFTaskMngr::CheckPDWConnStatus()
+{
+	if(m_hCommIF.GetPDWConnStatus() == true)
+	{
+		StopPDWConnStatusTimer();
+		InitFileFromStartChCorrect();
+		StartChannelCorrect(MODE_INIT_TYPE);
+	}
+}
+
+unsigned char CDFTaskMngr::GetLastIP()
+{
+	unsigned char ucLastIP = NULL;
+
+	//////// 자신의 IP 획득 //////////////////////////////////////////////////////////////////
+	char name[255] = {0,};
+	memset(name, NULL, sizeof(name));
+
+	PHOSTENT hostinfo = PHOSTENT();
+	memset(&hostinfo, NULL, sizeof(PHOSTENT));
+
+	CString strIP = _T("");
+	if ( gethostname(name, sizeof(name)) == NULL )
+	{
+		hostinfo = gethostbyname(name);
+		if ( hostinfo != NULL )
+		{
+			strIP = inet_ntoa (*(struct in_addr *)hostinfo->h_addr_list[0]);
+		}
+	}
+
+	int iOffset = NULL;
+	int iIp = NULL;
+	iOffset = strIP.Find(".", 0);
+	iOffset = strIP.Find(".", iOffset+1);
+	iOffset = strIP.Find(".", iOffset+1);
+	strIP = strIP.Mid(iOffset+1, strIP.GetLength()-iOffset-1);
+	iIp	= _ttoi(strIP);
+
+	if ( iIp > 0 && iIp < 65536 )
+	{
+		ucLastIP = (unsigned char)iIp;
+	}	 
+	//////////////////////////////////////////////////////////////////////////////////////////
+
+	return ucLastIP;
+}
+
+bool CDFTaskMngr::SetDataChanelCorrect(UINT iFreq, float* fch_t)
+{
+	bool result = true;	
+	float fch[5];
+	memcpy(fch, fch_t, sizeof(fch));
+
+	ofstream fCSVout;
+	if(m_iMode == MODE_INIT_TYPE) //채널보정
+	{
+		fCSVout.open(m_strFilePath_Chennel, ios::out | ios::app);
+	}
+	/*else if(m_iMode == 3)
+	{
+	fCSVout.open(m_strFilePath_Date, ios::out | ios::app);		
+	GetChannelDataCurFreq(iFreq);
+	}*/
+	CString strWriteData = _T("");
+
+	/*if(m_iMode == 3)
+	{
+	float a = fch[1] - m_fchcalCalcDiff[1];
+	float b = fch[1] - m_fchcalCalcDiff[1] < 0 ? fch[1] - m_fchcalCalcDiff[1] + 360 : fch[1] - m_fchcalCalcDiff[1];
+	float fch2[5] = {0.0,};
+
+	fch2[1] = fch[1] - m_fchcalCalcDiff[1] < 0 ? fch[1] - m_fchcalCalcDiff[1] + 360 : fch[1] - m_fchcalCalcDiff[1];
+	fch2[2] = fch[2] - m_fchcalCalcDiff[2] < 0 ? fch[2] - m_fchcalCalcDiff[2] + 360 : fch[2] - m_fchcalCalcDiff[2];
+	fch2[3] = fch[3] - m_fchcalCalcDiff[3] < 0 ? fch[3] - m_fchcalCalcDiff[3] + 360 : fch[3] - m_fchcalCalcDiff[3];
+	fch2[4] = fch[4] - m_fchcalCalcDiff[4] < 0 ? fch[4] - m_fchcalCalcDiff[4] + 360 : fch[4] - m_fchcalCalcDiff[4];
+
+	strWriteData.Format("%d,%d,%f,%f,%f,%f,%f", iFreq, m_Degree, fch2[0],fch2[1],fch2[2],fch2[3],fch2[4]);
+
+	TRACE("모드 연산값 Freq_r %d, iph_1 %f, iph_2 %f, iph_3 %f, iph_4 %f, iph_5 %f  \n",
+	iFreq, fch2[0], fch2[1], fch2[2], fch2[3], fch2[4]);		
+	}
+	else*/
+		strWriteData.Format("%d,%f,%f,%f,%f,%f", iFreq,  fch[0],fch[1],fch[2],fch[3],fch[4]);
+
+	fCSVout << strWriteData << endl;
+		
+	fCSVout.close();
+	return result;
+}
+
+// 방사보정 장입용 ROM 데이터(위상) 파일 로드용 함수
+BOOL CDFTaskMngr::LoadDfCalRomDataPh() 
+{
+	FILE	*fpFile;
+	CString	fileName, szDefaultFileName;
+	CString msg;
+
+	float fGetGenBear= 0.f;  //LMS_ADD_20171221
+	float fGetGenFreq= 0.f;  //LMS_ADD_20171221
+	UINT  uiBand = 0;        //LMS_ADD_20171221
+	UINT uiFreqRangeStartMHzTemp = 0;//LMS_ADD_20171221
+	UINT uiFreqReadStartMHzTemp  = 0;//LMS_ADD_20171221
+	UINT uiFreqReadEndMHzTemp    = 0;//LMS_ADD_20171221
+
+
+	memset(pstBigArray->m_usPhDfRomData,  0, sizeof(pstBigArray->m_usPhDfRomData));//LMS_MODIFY_20171222   memset(m_usPhDfRomData,  0, sizeof(m_usPhDfRomData));  // 방사보정용 위상 ROM 데이터[채널][방위][주파수] 멤버 변수 초기화
+
+	//szDefaultFileName.Format("LIG_MF_Data_no1.txt");//    .Format((LPCSTR)"방사보정 장입용 ROM데이터_위상_Deg.txt");             //LMS_MODIFY_20171226 szDefaultFileName.Format("방사보정 장입용 ROM데이터_위상_저대역_Deg.txt"); 
+
+	//::SetCurrentDirectory(m_szCurDir); 
+	//CString sDir = m_szCurDir;
+
+	//sDir += "\\Measure";
+	//::CreateDirectory(sDir, NULL);
+
+	//sDir += "\\Comint";
+	//::CreateDirectory(sDir, NULL);
+
+	//// Read Only 포멧 다이얼 로그 열기
+	//CFileDialog	dlgFile(TRUE, "txt", szDefaultFileName,
+	//	OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Txt Files(*.txt)|*.txt||", NULL);
+
+	//dlgFile.m_ofn.lpstrTitle = "방사보정 장입용 ROM 데이터 파일 지정";
+
+	//dlgFile.m_ofn.lpstrInitialDir = sDir;
+
+	//if (dlgFile.DoModal() != IDOK)
+	//	return FALSE;
+
+	//CString szFullFileName;
+	//szFullFileName.Format("LIG_MF_Data_no1.txt"); // 파일명 및 디렉토리 정보 로드
+	fpFile = fopen(m_strAntFullFileName, "rt");//fpFile = fopen((const char *)"RADICAL.txt", "rt");//fpFile = fopen(szFullFileName, "rt");
+
+	if (fpFile == NULL)
+	{
+		AfxMessageBox("파일을 읽을 수 없습니다!");
+		return FALSE;
+	}
+	else
+	{
+		//LMS_DEL_20190705 BeginWaitCursor();
+
+		memset(pstBigArray->m_usPhDfRomData,  0, sizeof(pstBigArray->m_usPhDfRomData)); //LMS_MODIFY_20171222  memset(m_usPhDfRomData,  0, sizeof(m_usPhDfRomData));  // 방사보정용 위상 ROM 데이터[채널][방위][주파수] 멤버 변수 초기화
+
+		CHAR szGetTemp[30];
+		for (INT nTempIndex = 0; nTempIndex < COMINT_MAX_CHANNEL_COUNT+3; nTempIndex++)//LMS_MODIFY_20171221 for (INT nTempIndex = 0; nTempIndex < COMINT_MAX_CHANNEL_COUNT+2; nTempIndex++) // 파일에서 제목 타이틀 줄 읽어서 버림
+			fscanf(fpFile, "%s", szGetTemp );
+
+		UINT	uiGetPhase[5];
+		INT		iGetFileStaus;
+
+		USHORT usAngleStep = (USHORT) 1; //(m_uiRomDataLoadStepAngle);
+
+		INT iSetFreqPt = 0;
+
+
+		//LMS_ADD_20171221
+		UINT m_uiFreqRangeStartMHz = 20;
+		float m_fStartFreq = 20.f;
+		UINT m_uiFreqRangeEndMHz = 8000;
+		float m_fStopFreq = 8000.f;
+		float m_fStepFreq = 1.f;
+		float m_fStartAngle = 0.f;
+		float m_fStopAngle = 359.f;
+		//LMS_ADD_20171221
+
+		if( (m_uiFreqRangeStartMHz >= 20  ) && 
+			(m_uiFreqRangeStartMHz <= 8000)
+			)
+		{
+			m_fStartFreq = (float)m_uiFreqRangeStartMHz;
+		} else {
+			m_fStartFreq = 20;
+		}
+		//LMS_ADD_20171221
+		if( (m_uiFreqRangeEndMHz >= 20  ) && 
+			(m_uiFreqRangeEndMHz <= 8000)
+			)
+		{
+			m_fStopFreq = (float)m_uiFreqRangeEndMHz;
+		} else {
+			m_fStopFreq = 8000;
+		}
+		
+		for (USHORT usSetFreq = (USHORT) m_fStartFreq; usSetFreq <= m_fStopFreq; usSetFreq += (USHORT) m_fStepFreq) // 주파수 루프 
+		{
+			INT iSetAnglePt = 0;
+
+			for (USHORT usAngle = (USHORT) m_fStartAngle; usAngle <= m_fStopAngle; usAngle += usAngleStep) // 방위 루프
+			{
+				//LMS_MODIFY_20171221 iGetFileStaus =	fscanf(fpFile, "%f\t%f\t", &m_fGetGenFreq[iSetAnglePt][iSetFreqPt], &m_fGetGenBear[iSetAnglePt][iSetFreqPt]);
+				iGetFileStaus =	fscanf(fpFile, "%d\t%f\t%f\t", &uiBand, &fGetGenFreq, &fGetGenBear);
+				//pstBigArray->m_fGetGenFreq[iSetAnglePt][iSetFreqPt] = fGetGenFreq;//LMS_MODIFY_20171222  m_fGetGenFreq[iSetAnglePt][iSetFreqPt] = fGetGenFreq;
+				//pstBigArray->m_fGetGenBear[iSetAnglePt][iSetFreqPt] = fGetGenBear;//LMS_MODIFY_20171222  m_fGetGenBear[iSetAnglePt][iSetFreqPt] = fGetGenBear;
+				iGetFileStaus =	fscanf(fpFile, "%d\t%d\t%d\t%d\t%d", &uiGetPhase[0], &uiGetPhase[1], &uiGetPhase[2], &uiGetPhase[3], &uiGetPhase[4]);
+
+				if (iGetFileStaus != EOF)
+				{
+					for (USHORT usChannel = 0; usChannel < COMINT_MAX_CHANNEL_COUNT; usChannel++) // 채널 Loop
+					{
+						//pstBigArray->m_usPhDfRomData[usChannel][iSetAnglePt][iSetFreqPt] = (USHORT) uiGetPhase[usChannel]; //LMS_MODIFY_20171222  m_usPhDfRomData[usChannel][iSetAnglePt][iSetFreqPt] = (USHORT) uiGetPhase[usChannel]; // 방사보정 ROM데이터 대입 [채널][방위][주파수]
+						pstBigArray->m_usPhDfRomData[iSetFreqPt][iSetAnglePt][usChannel] = (USHORT) uiGetPhase[usChannel];
+					}
+				}
+				else
+				{
+					break;
+				}
+
+				iSetAnglePt++;	
+			}
+			//LMS_MODIFY_20171226 iSetFreqPt++; 
+			uiFreqRangeStartMHzTemp = (UINT)fGetGenFreq;
+			if(uiFreqRangeStartMHzTemp >= m_uiFreqRangeStartMHz){
+				//파일에서 읽은 주파수가 시작주파수보다 클때만 변수에 저장한다.
+				iSetFreqPt++; 
+				if(uiFreqReadStartMHzTemp == 0 ){//시작주파수값은 값 할당이 안된 최초일때만 업데이트한다.
+					uiFreqReadStartMHzTemp = (UINT)fGetGenFreq;
+				}
+			}
+		}	
+
+		fclose(fpFile); 
+
+		//LMS_DEL_20190705 EndWaitCursor();
+
+		//LMS_ADD_20171226
+		/*uiFreqReadEndMHzTemp = (UINT)fGetGenFreq;
+		if((uiFreqReadStartMHzTemp == 0) || (uiFreqReadEndMHzTemp < m_uiFreqRangeEndMHz)){
+		AfxMessageBox("설정 주파수범위보다 읽은 주파수 개수가 적습니다 Read StartFreq=[%d]MHz EndFreq=[%d]MHz",uiFreqReadStartMHzTemp,uiFreqReadEndMHzTemp);
+		} else {
+		AfxMessageBox("방사보정 장입용 ROM 데이터(위상) 파일에서 데이터를 정상적으로 로딩하였습니다!");
+		}*/
+
+		return TRUE;
+	}	
+}
+
+void CDFTaskMngr::SetDFCrectFreqList()
+{
+	string strFilePath;
+	std::ifstream in;
+	strFilePath = "C:\\IdexFreq\\LIG_index_freq.csv";
+	int n_Index = 0, n_Freq = 0;
+	STAutoFreqDataLIst stAutoFreqData;
+
+	in.open(strFilePath, std::ifstream::in);	
+
+	if(in.is_open() == true) {
+
+		char buf[40] = {0, 0};
+		int i = 0;
+		while( in.good() == true )	//#FA_C_PotentialUnboundedLoop_T1
+		{		
+			in.getline(buf, CSV_BUF, ',');
+			n_Index = _ttoi(buf);
+
+			in.getline(buf, CSV_BUF, '\n');
+			n_Freq = _ttoi(buf);
+
+			stAutoFreqData.index = n_Index;
+			stAutoFreqData.freq = n_Freq;	
+
+			m_listDFFreqData.push_back(n_Freq);		
+
+			if(in.eof() == true)
+			{
+				break;
+			}
+		}
+		in.close();		
+	}
+}
+
+int CDFTaskMngr::GetIndexFreq(UINT iFreq)
+{	
+	string strFilePath;
+	std::ifstream in;
+	strFilePath = "C:\\IdexFreq\\LIG_index_freq.csv";
+	//strFilePath = "C:\\IdexFreq\\LIG_no3_index_freq_rev.csv";
+	int n_Index = 0, n_Freq = 0;
+
+	in.open(strFilePath, std::ifstream::in);	
+
+	if(in.is_open() == true) {
+
+		char buf[40] = {0, 0};
+		int i = 0;
+		while( in.good() == true )	//#FA_C_PotentialUnboundedLoop_T1
+		{		
+			in.getline(buf, CSV_BUF, ',');
+			n_Index = _ttoi(buf);
+
+			in.getline(buf, CSV_BUF, '\n');
+			n_Freq = _ttoi(buf);
+
+			if(iFreq == n_Freq)
+			{
+				break;
+			}
+
+			if(in.eof() == true)
+			{
+				break;
+			}
+		}
+		in.close();		
+	}
+
+	return n_Index;
+}
+
+int CDFTaskMngr::GetAOADataFromAlgrism(UINT iFreq, int i_idxFreq, float * fchMeasPhDiffData)
+{
+	bool result = true;
+	int iAOA;
+	string strFilePath;
+	std::ifstream in;
+	strFilePath = "C:\\IdexFreq\\CHData_Done.csv";
+	_CH_CORRECT nchCorrectData;
+	float nTemp;
+	float fchcalPHDiff[5];
+	memcpy(fchcalPHDiff, fchMeasPhDiffData, sizeof(fchcalPHDiff));
+	in.open(strFilePath, std::ifstream::in);	
+
+	if(in.is_open() == true) {
+
+		char buf[40] = {0, 0};
+		int i = 0;
+		while( in.good() == true )	//#FA_C_PotentialUnboundedLoop_T1
+		{		
+			in.getline(buf, CSV_BUF, ',');
+			nTemp = _ttof(buf);
+			nchCorrectData.iFreq = nTemp;			
+
+			in.getline(buf, CSV_BUF, ',');
+			nTemp = _ttof(buf);
+			nchCorrectData.fph[0] = nTemp;
+
+			in.getline(buf, CSV_BUF, ',');
+			nTemp = _ttof(buf);
+			nchCorrectData.fph[1] = nTemp;
+
+			in.getline(buf, CSV_BUF, ',');
+			nTemp = _ttof(buf);
+			nchCorrectData.fph[2] = nTemp;
+
+			in.getline(buf, CSV_BUF, ',');
+			nTemp = _ttof(buf);
+			nchCorrectData.fph[3] = nTemp;
+
+			in.getline(buf, CSV_BUF, '\n');
+			nTemp = _ttof(buf);
+			nchCorrectData.fph[4] = nTemp;	
+
+			if(nchCorrectData.iFreq == iFreq)
+			{
+				break;
+			}
+
+			if(in.eof() == true)
+			{
+				break;
+			}
+		}
+		in.close();		
+	}
+
+	TRACE("채널보정 ch_1 %f, ch_2 %f, ch_3 %f, ch_4 %f, ch_5 %f \n", nchCorrectData.fph[0],  nchCorrectData.fph[1], nchCorrectData.fph[2], nchCorrectData.fph[3], nchCorrectData.fph[4]);
+
+	TRACE("측정데이터 Index %d, ch_1 %f, ch_2 %f, ch_3 %f, ch_4 %f, ch_5 %f \n", i_idxFreq, fchcalPHDiff[0],  fchcalPHDiff[1], fchcalPHDiff[2], fchcalPHDiff[3], fchcalPHDiff[4]);
+	//이명식 수석님 함수 호출
+
+	iAOA =  DoCvDfAlgoOperation((INT)i_idxFreq, nchCorrectData.fph, fchcalPHDiff, pstBigArray) * 100.f;
+
+
+	return iAOA;
+}
+
+
+int CDFTaskMngr::GetCloseDFFreq(UINT Freq)
+{
+	int nFreq = 0;
+	int nBeforeIndex = 0;
+	int bigDiff = 0;
+	int MinDiff = 0;
+	for(std::list<INT>::iterator it = m_listDFFreqData.begin(); it != m_listDFFreqData.end(); it++)
+	{
+		nFreq = *it;
+
+		if(Freq == nFreq)
+		{
+			break;
+		}
+
+		if(nFreq >=  Freq)  
+		{
+			bigDiff = abs(nFreq  - (int)Freq);
+			break;
+		}		
+
+		nBeforeIndex = nFreq;
+
+	}
+
+	MinDiff = abs(nBeforeIndex - (int)Freq);
+
+	if(bigDiff > MinDiff) 
+	{
+		nFreq = nBeforeIndex;		
+	}	
+
+	return nFreq;
+}
+
+void CDFTaskMngr::InitFileFromStartChCorrect()
+{
+	ofstream fout;
+	fout.open(m_strFilePath_Chennel, ios::out | ios::binary | ios::trunc);
+	fout.close();
+}
+
+void CDFTaskMngr::StartChannelCorrect(int i_nModeType)
+{
+	m_iMode  = i_nModeType;
+	//V/UHF
+	STAutoFreqDataLIst stAutoFreq = m_listAutoFreqData.front();
+	m_Freq = stAutoFreq.freq;
+	m_listAutoFreqData.pop_front();
+
+	int opcode = MakeOPCode(CMDCODE_UHF_TX_SET_ANT_MODE, DEVICECODE_TRD, DEVICECODE_TVU);	
+
+	//V/UHF 제어 설정
+	STxUHFSetAntMode SetAntMode;
+	SetAntMode.ucCalAntMode =0; //0 시작 : 1 : 종료
+	m_hCommIF.Send(opcode, sizeof(SetAntMode), m_LinkInfo, Equip_Rev_VU, m_POSNIP, (void*)&SetAntMode); //134고유 ip끝번호 // 경로설정
+
+	Sleep(100);
+	int opcode2 = MakeOPCode(CMDCODE_UHF_TX_SET_CAL_FREQ, DEVICECODE_TRD, DEVICECODE_TVU);
+
+	STxUHFSetCalFreq setCalFreq;	
+	setCalFreq.uiCal_Freq = m_Freq * 1000;
+
+	//V/UHF 주파수 설정	
+	m_hCommIF.Send(opcode2, sizeof(setCalFreq),m_LinkInfo, Equip_Rev_VU, m_POSNIP, (void*)&setCalFreq); //134고유 ip끝번호 //주파수설정
+	Sleep(10);
+	
+	//레이더방탐 장비 제어
+	UINT64 uifrequency = (UINT64)((double)m_Freq * 1000000.0f);//Hz
+	bool bfail = false;
+
+	CString  strcommand;
+	strcommand.Format("SENSe:FREQuency:CENTer %I64d", uifrequency );
+	bfail = g_RcvFunc.SCPI_CommendWrite(strcommand);
+
+	TRACE("result_1 %d\n", bfail);
+
+	INT64 iGain = -35;
+
+	strcommand.Format("SENSe:GCONtrol %I64d", iGain);
+	bfail = g_RcvFunc.SCPI_CommendWrite(strcommand);
+	TRACE("GCONtrol %d\n", bfail);
+
+	int opcode_Coll = MakeOPCode(CMDCODE_DF_TX_PDW_COLECT_SET, DEVICECODE_TRD, DEVICECODE_TDP); //신호수집 설정
+
+	_PDW_COLECTSET set_collect;
+	strcpy( (char *) set_collect.aucTaskID, "채널보정_초기셋팅" );
+
+	set_collect.iRxThresholdValue = (-35+110)*4;
+	set_collect.uiAcquisitionTime = 100000000;
+	set_collect.uiNumOfAcqPulse = 10;
+	set_collect.uiNBDRBandwidth =1;	
+
+	m_hCommIF.Send(opcode_Coll, sizeof(set_collect), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&set_collect); //수집완료 상태 요청
+
+	int opcode_done_status = MakeOPCode(CMDCODE_DF_RX_PDW_COLECT_DONE_STAT, DEVICECODE_TRD, DEVICECODE_TDP);
+
+	_PDW_COLECTDONE_STAT_REQ  req_collStat;
+	req_collStat.uiDoneStatus = 1;
+
+	m_hCommIF.Send(opcode_done_status, sizeof(req_collStat), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&req_collStat); //134고유 ip끝번호 //주파수설정
+}
+
+void CDFTaskMngr::GetAutoFreqChCorrect()
+{
+	string strFilePath;
+	std::ifstream in;
+	strFilePath = "C:\\IdexFreq\\LIG_Assign_freq.csv";	
+	int n_Index = 0, n_Freq = 0;
+	STAutoFreqDataLIst stAutoFreqData;
+
+	in.open(strFilePath, std::ifstream::in);	
+
+	if(in.is_open() == true) {
+
+		char buf[40] = {0, 0};
+		int i = 0;
+		while( in.good() == true )	//#FA_C_PotentialUnboundedLoop_T1
+		{		
+			in.getline(buf, CSV_BUF, ',');
+			n_Index = _ttoi(buf);
+
+			in.getline(buf, CSV_BUF, '\n');
+			n_Freq = _ttoi(buf);
+
+			stAutoFreqData.index = n_Index;
+			stAutoFreqData.freq = n_Freq;			
+			
+			m_listAutoFreqData.push_back(stAutoFreqData);				
+			
+			if(in.eof() == true)
+			{
+				break;
+			}
+		}
+		in.close();		
+	}
+}
+
+void CDFTaskMngr::SendSptrCmdToPDW()
+{
+	int opcode_Sptr = MakeOPCode(CMDCODE_DF_TX_PDW_SPTR_REQ, DEVICECODE_TRD, DEVICECODE_TDP); //스펙트럼 시작
+
+	SRxSpectrumCmd sptrCmd;
+	sptrCmd.uiReqSprtinfo = 1; //시작
+	
+	m_hCommIF.Send(opcode_Sptr, sizeof(sptrCmd), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&sptrCmd); //스펙트럼 시작요청
+}
+
+void CDFTaskMngr::SetPDWAcqCollect(STxAcqTraskData stAcqTaskData)
+{
+	int opcode_Coll = MakeOPCode(CMDCODE_DF_TX_PDW_COLECT_SET, DEVICECODE_TRD, DEVICECODE_TDP); //수집설정 요청
+
+	_PDW_COLECTSET set_collect;
+	strcpy( (char *) set_collect.aucTaskID, (char *)stAcqTaskData.aucTaskID );
+	
+	set_collect.iRxThresholdValue = stAcqTaskData.iRxThresholdValue;
+	set_collect.uiAcquisitionTime = stAcqTaskData.uiAcquisitionTime;
+	set_collect.uiNumOfAcqPulse = stAcqTaskData.uiNumOfAcqPuls; 	
+	set_collect.uiNBDRBandwidth = stAcqTaskData.uiNBDRBandWidth;
+
+	m_hCommIF.Send(opcode_Coll, sizeof(set_collect), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&set_collect); 
+}
+
+void CDFTaskMngr::SetFreqToRadarUnit(UINT Freq)
+{
+	int opcode = MakeOPCode(CMDCODE_UHF_TX_SET_ANT_MODE, DEVICECODE_TRD, DEVICECODE_TVU);	
+
+	//V/UHF 제어 설정
+	STxUHFSetAntMode SetAntMode;
+	SetAntMode.ucCalAntMode = 1; //0 시작 : 1 : 종료
+	m_hCommIF.Send(opcode, sizeof(SetAntMode), m_LinkInfo, Equip_Rev_VU, m_POSNIP, (void*)&SetAntMode); //134고유 ip끝번호 // 경로설정
+
+	UINT nCloseFreq = GetCloseDFFreq(m_Freq);
+	m_Freq = nCloseFreq;
+	
+	UINT64 uifrequency = (UINT64)((double)m_Freq * 1000000.0f);//Hz
+	bool bfail = false;
+
+	CString  strcommand;
+	strcommand.Format("SENSe:FREQuency:CENTer %I64d", uifrequency);
+	bfail = g_RcvFunc.SCPI_CommendWrite(strcommand);
+
+	TRACE("result_1 %d\n", bfail);
+
+	uifrequency = -35;
+	strcommand.Format("SENSe:GCONtrol %I64d", uifrequency);
+	bfail = g_RcvFunc.SCPI_CommendWrite(strcommand);
+	Sleep(100);
+
+	uifrequency = 1;
+	strcommand.Format("SENSe:BANDwidth:RFConverter %I64d", uifrequency);
+	bfail = g_RcvFunc.SCPI_CommendWrite(strcommand);
+	TRACE("BANDWITH %d\n", bfail);
+}
+
+void CDFTaskMngr::SendToRadarAnlys(int i_opCode, int i_cmd)
+{
+	//int nPDWCnt = stColectDoneStat.iNumOfPDW;
+	//int opcode_PDW = MakeOPCode(CMDCODE_DF_TX_PDW_REQ, DEVICECODE_TRD, DEVICECODE_TDP);
+
+	//_PDW_DATA_Req req_PDWData;		 
+	//strcpy( (char *) req_PDWData.aucTaskID, "채널보정_초기셋팅" );
+	//req_PDWData.iPDWCnt = 10;
+
+	//m_hCommIF.Send(opcode_PDW, sizeof(req_PDWData), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&req_PDWData); //134고유 ip끝번호 //주파수설정
+
+	//switch(i_cmd)
+	//{
+	//	case 
+	//}
+
+	//m_hCommIF.Send(i_opCode, sizeof(stSystemVal), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&stSystemVal); 
+}
+
+
+/////////////방탐라이브러리화 될 때 삭제 //////////////////////////////////////////
+//LMS_ADD_20190705 방향탐지 알고리즘(CVDF)함수
+#define COMINT_PHASE_RESOLUTION	 	0.01f		// COMNT 위상(위상차) 해상도(16Bit, 0.01도)
+#define DIRECT_COS_CALCULATION_APPLY_MODE					// CVDF 연산시 Direct Cosin 연산수행 여부 지정
+// CVDF 방탐 알고리즘 연산 
+float CDFTaskMngr::DoCvDfAlgoOperation(INT    iSetFreqPt,      // 주파수 인덱스
+											 float	*fChcalPhDiff,    // 채널보정데이터 float타입 5채널 degree
+											 float	*fMeasPhDiff,     // 수집데이터     float타입 5채널 degree
+											 _stBigArray *pstBigArray // 방사보정데이터 degree x 100 값
+											)
+{
+	USHORT usAngle;				// 방위 인덱스 지정 변수
+	USHORT usSetAnglePt;		// 방위데이터 배열의 포인트 지정 변수
+	USHORT usMaxCorVectPt;		// 최대 CV 값 위치 지정용 변수 
+	USHORT usMaxAngleStep;		// 최대 방위 스탭 지정
+	float  fFinalAOA = 0;		// 최종 선택 방위 저장용 변수
+	float  fInnerProductSum;	// Vector 내적 저장 변수
+	float  fRadiCalPhDiff[36], fCorrelationFactor[360]; // 위상차 데이터 및 상관계수 저장 변수
+	float  fDegToRad = (float) divsp(PI, 180.f); // 도 단위를 라디안 단위로 변환 변수 지정 및 연산		
+	USHORT usInputPhDiffData;
+
+	USHORT usAngleStep = (USHORT) 1;//LMS_MODIFY_20190705   (m_uiRomDataLoadStepAngle);
+
+	usMaxAngleStep = 360/usAngleStep;  // 최대 방위 스탭 지정
+
+	usSetAnglePt = 0;
+	usMaxCorVectPt = 0;
+
+	//LMS_ADD_20190705
+	float	m_fStartAngle =  0.f;  // 방위 범위 설정변수 초기화
+	float	m_fStopAngle  = 359.f; // 방위 범위 설정변수 초기화
+	USHORT	m_usAntennaCombNum[2]; // 안테나 조합수 (저/고대역, 안테나조합수  0~24)
+	m_usAntennaCombNum[0] = 10;
+	m_usAntennaCombNum[1] = 10;
+	INT		m_iBand = 0;   // 대역 정보 변수 
+	//float	m_fMeasPhDiff[36]; // 측정 위상차 데이터 저장용 변수
+
+	float	fChcalPhDiffCombination[10] ={0,0,0,0,0,0,0,0,0,0};   //채널보정데이터 float타입 5채널
+
+	float	fMeasPhDiffCombination[10]={0,0,0,0,0,0,0,0,0,0};   
+
+
+	for (usAngle = (USHORT) m_fStartAngle; usAngle <= m_fStopAngle; usAngle += usAngleStep) // 방위 X도 간격으로 360도까지 수행
+	{
+		fInnerProductSum = 0.f; // 내적 값 초기화 
+
+		// 적용함수1 : z = mpysp(x, y), z = x*y 
+		// 적용함수2 : z = divsp(x, y), z = x/y
+		// 각 PH별(안테나 조합) 방사보정용 위상차 데이터와 측정 위상차 데이터 간의 Correlation Vector 값 구함
+		// 특히 방사보정데이터가 저장된 usRadiCalPhDiff 값에 Fixed로 변환하기 위해 곱해준 해상도값을 다시 나눠 원본 위상차 값 구함 
+		for (USHORT usChannel = 0; usChannel < m_usAntennaCombNum[m_iBand]; usChannel++) // CVDF 안테나 위상차 조합 채널별로 내적 값 연산(9 채널)
+		{	
+
+			usInputPhDiffData = GenCvDfPhaseDiffConversion(0, usChannel, (INT) usSetAnglePt, iSetFreqPt ,pstBigArray,
+				                                            fMeasPhDiff , fChcalPhDiff //, fMeasPhDiffCombination, fChcalPhDiffCombination
+				
+				); // 방사보정용 ROM데이터 파일 Load
+			fRadiCalPhDiff[usChannel] = (float) (usInputPhDiffData * COMINT_PHASE_RESOLUTION);
+
+#ifdef DIRECT_COS_CALCULATION_APPLY_MODE  
+			// 측정 위상차 데이터 및 방사보정데이터 차(A-B)를 구한후 바로 Cos(A-B) 연산 수행
+			//float fTempPhDiff = fMeasPhDiff[usChannel] - fChcalPhDiff[usChannel] - fRadiCalPhDiff[usChannel] ;  //float fTempPhDiff = m_fMeasPhDiff[usChannel] - fRadiCalPhDiff[usChannel];
+			float fTempPhDiff = fRadiCalPhDiff[usChannel];
+			fTempPhDiff = fmodf(fTempPhDiff, 360.f); // 방위를 0~360도 내의 값으로 변환 
+			float fSumTemp = cosf(mpysp(fTempPhDiff, fDegToRad));
+
+			fInnerProductSum += fSumTemp;
+#else
+			// 측정 위상차 데이터 및 방사보정데이터 각각에 Cos, Sin 연산후 "Cos(A-B) = Cos(A)*Cos(B) + Sin(A)*Sin(B)" 연산 수행
+			float fSumTemp1 = mpysp(cosf(mpysp(m_fMeasPhDiff[usChannel], fDegToRad)), cosf(mpysp(fRadiCalPhDiff[usChannel], fDegToRad)));
+			float fSumTemp2 = mpysp(sinf(mpysp(m_fMeasPhDiff[usChannel], fDegToRad)), sinf(mpysp(fRadiCalPhDiff[usChannel], fDegToRad)));
+			float fSumTemp3 = fSumTemp1 + fSumTemp2;
+
+			fInnerProductSum += fSumTemp3;
+#endif
+
+			// 위 두 연산식 차이 여부 검증용(TEMP) 
+			//			if (((fSumTemp3-fSumTemp) > 0.000001f) || ((fSumTemp3-fSumTemp) < -0.000001f))
+			//				TRACE("\n fSumTemp3 : %f, fSumTemp : %f", fSumTemp3, fSumTemp);
+
+		}
+
+		fCorrelationFactor[usSetAnglePt] = divsp(fInnerProductSum, 9.f); // 각 채널별로 합산한 내적값을 평균하여 상관계수(Correlation Coefficient) 산출
+
+		if ((fCorrelationFactor[usSetAnglePt] > fCorrelationFactor[usMaxCorVectPt]))
+			usMaxCorVectPt = usSetAnglePt;
+
+		usSetAnglePt++;
+	}
+
+	UINT uiFinCorrFactor;
+
+	if (fCorrelationFactor[usMaxCorVectPt] >= 0.f)
+	{
+		uiFinCorrFactor = ((UINT) (fCorrelationFactor[usMaxCorVectPt]*100)) & 0xFFFFFFFF; // 최종 상관계수 저장용 멤버 변수 업데이트	
+	}
+	else
+	{
+		uiFinCorrFactor = 0; // 상관계수가 음수 일 때는 상관관계 '0'으로 처리
+	}
+
+	float fNumerator, fDenominator; // 인터폴레이션 수행용 분자, 분모 변수 
+
+	// 인터폴레이션 수행
+	if (usMaxCorVectPt == 0) // 방위가 시작 포인트인 0도에서 상관계수가 가장클 때의 인터폴레이션						
+	{
+		// 4도(두번째 방위)와 356도(마지막 방위)로 인터폴레이션 연산 수행
+		fNumerator = 0.5f*(fCorrelationFactor[1] - fCorrelationFactor[usMaxAngleStep-1]); 
+		fDenominator = fCorrelationFactor[usMaxCorVectPt] - 0.5f*(fCorrelationFactor[1] + fCorrelationFactor[usMaxAngleStep-1]);
+	}
+	else if (usMaxCorVectPt == (usMaxAngleStep-1)) // 방위가 마지막 포인트인 359도(1도스탭 기준)에서 상관계수가 가장클 때의 인터폴레이션					
+	{
+		// 0도(첫번째 방위)와 352도(마지막 바로 전방위)로 인터폴레이션 연산 수행
+		fNumerator = 0.5f*(fCorrelationFactor[0] - fCorrelationFactor[usMaxAngleStep-2]);
+		fDenominator = fCorrelationFactor[usMaxCorVectPt] - 0.5f*(fCorrelationFactor[0] + fCorrelationFactor[usMaxAngleStep-2]);
+	}
+	else // 상관계수가 가장 큰 방위가 양쪽 엣지 방위(0도, 359도(1도스탭 기준))가 아닐 때 때의 인터폴레이션									
+	{
+		// 상관계수가 가장큰 방위의 앞뒤 방위로 인터폴레이션 연산 수행
+		fNumerator = 0.5f*(fCorrelationFactor[usMaxCorVectPt+1] - fCorrelationFactor[usMaxCorVectPt-1]);
+		fDenominator = fCorrelationFactor[usMaxCorVectPt] - 0.5f*(fCorrelationFactor[usMaxCorVectPt+1] + fCorrelationFactor[usMaxCorVectPt-1]);
+	}
+
+	float fInterpolCoef;
+
+	if (fDenominator == 0.f)
+		fInterpolCoef = 0.f;
+	else
+		fInterpolCoef = 0.5f*fNumerator/fDenominator; // 인터폴레이션 계수 지정 및 연산
+
+	float fAoaResolution; // 방위 해상도 지정 변수
+
+	fAoaResolution = (float) usAngleStep;
+
+	float fTempAOA;
+
+	// 상관계수로 구한 방위와 인터폴 레이션으로 구한 옵셋 방위를 더해 최종 방위 구함 
+	fTempAOA = 360.f + (float)(usMaxCorVectPt)*fAoaResolution + fAoaResolution*fInterpolCoef; // 인터폴레이션 적용 방위, 0도 이하 값 제거를 위해 360도 더해줌
+	//	fTempAOA = 360.f + (float)(usMaxCorVectPt)*fAoaResolution; // 인터폴레이션 비적용 방위, 0도 이하 값 제거를 위해 360도 더해줌
+
+	fTempAOA = fmodf(fTempAOA, 360.f); // 방위를 0~360도 내의 값으로 변환 
+
+	if (fTempAOA > 359.999f) // 소수점 4자리 이하 삭제, 방위 359.999 이상 값이 360도로 출력되는 현상 방지
+		fFinalAOA = 0.f;
+	else
+		fFinalAOA = fTempAOA;
+
+	return fFinalAOA;
+}
+
+//LMS_ADD_20190705 방향탐지 알고리즘(CVDF)함수
+// 실수 나누기 연산
+float CDFTaskMngr::divsp(float  x, float  y)
+{
+	if (y != 0)
+		return x/y;
+	else
+		return 0;
+}
+
+//LMS_ADD_20190705 방향탐지 알고리즘(CVDF)함수
+// 실수 곱하기 연산
+float CDFTaskMngr::mpysp(float  x, float  y)
+{
+	return x*y;
+}
+
+//LMS_ADD_20190705 방향탐지 알고리즘(CVDF)함수
+// 수집된 절대 위상 데이터로 CV 위상차 데이터 생성		
+USHORT CDFTaskMngr::GenCvDfPhaseDiffConversion(INT iDataFileType, 
+	                                                 USHORT usAntennaCombNum, 
+													 INT iSetAnglePt, 
+													 INT iSetFreqPt,
+													 _stBigArray *pstBigArray,
+													 float *fMeasPhDiff , float *fChcalPhDiff
+													 //, float *fMeasPhDiffCombination, float *fChcalPhDiffCombination
+													 )
+{
+	//LMS_MODIFY_20171221 이것때문에 시간이 오래걸리는듯하여 수정한다. UpdateData(TRUE); // 화면에서 변수 입력 받음
+
+	INT iPhDiff; // 위상차 저장용 변수
+	USHORT usAntChNum[2]; // 안테나간 위상차 구하기 위한 1,2 채널 정보 저장 변수 
+
+	//LMS_ADD_20190705
+	USHORT	m_usAntennaCombData[2][36][2]; // 안테나 조합 정보 저/고대역, 안테나조합정보 0~24, 채널1/2
+	m_usAntennaCombData[0][0][0] = 1;
+	m_usAntennaCombData[0][0][1] = 2;
+
+	m_usAntennaCombData[0][1][0] = 1;
+	m_usAntennaCombData[0][1][1] = 3;
+
+	m_usAntennaCombData[0][2][0] = 1;
+	m_usAntennaCombData[0][2][1] = 4;
+
+	m_usAntennaCombData[0][3][0] = 1;
+	m_usAntennaCombData[0][3][1] = 5;
+
+	m_usAntennaCombData[0][4][0] = 2;
+	m_usAntennaCombData[0][4][1] = 3;
+
+	m_usAntennaCombData[0][5][0] = 2;
+	m_usAntennaCombData[0][5][1] = 4;
+
+	m_usAntennaCombData[0][6][0] = 2;
+	m_usAntennaCombData[0][6][1] = 5;
+
+	m_usAntennaCombData[0][7][0] = 3;
+	m_usAntennaCombData[0][7][1] = 4;
+
+	m_usAntennaCombData[0][8][0] = 3;
+	m_usAntennaCombData[0][8][1] = 5;
+
+	m_usAntennaCombData[0][9][0] = 4;
+	m_usAntennaCombData[0][9][1] = 5;
+	INT		m_iBand=0;   // 대역 정보 변수 
+
+
+	usAntChNum[0] = m_usAntennaCombData[m_iBand][usAntennaCombNum][0]; 
+	usAntChNum[1] = m_usAntennaCombData[m_iBand][usAntennaCombNum][1]; 
+
+	// 에러상황 예외 처리 
+	if ((usAntChNum[0] > 9) || (usAntChNum[1] > 9))
+	{
+		usAntChNum[0] = 0;
+		usAntChNum[1] = 0;
+	}
+
+	INT iPhInputData1, iPhInputData2;
+
+	if (iDataFileType == 0)
+	{
+		// 방사보정용 위상 ROM 데이터[채널][방위][주파수] 파일에서 Load한 데이터
+		//iPhInputData1 = (INT) pstBigArray->m_usPhDfRomData[usAntChNum[0]-1][iSetAnglePt][iSetFreqPt]; //LMS_MODIFY_20171222    iPhInputData1 = (INT) m_usPhDfRomData[usAntChNum[0]-1][iSetAnglePt][iSetFreqPt];
+		//iPhInputData2 = (INT) pstBigArray->m_usPhDfRomData[usAntChNum[1]-1][iSetAnglePt][iSetFreqPt]; //LMS_MODIFY_20171222    iPhInputData2 = (INT) m_usPhDfRomData[usAntChNum[1]-1][iSetAnglePt][iSetFreqPt];
+		iPhInputData1 = (INT) pstBigArray->m_usPhDfRomData[iSetFreqPt][iSetAnglePt][usAntChNum[0]-1]; //LMS_MODIFY_20171222    iPhInputData1 = (INT) m_usPhDfRomData[usAntChNum[0]-1][iSetAnglePt][iSetFreqPt];
+		iPhInputData2 = (INT) pstBigArray->m_usPhDfRomData[iSetFreqPt][iSetAnglePt][usAntChNum[1]-1]; //LMS_MODIFY_20171222    iPhInputData2 = (INT) m_usPhDfRomData[usAntChNum[1]-1][iSetAnglePt][iSetFreqPt];
+
+		iPhInputData1 = iPhInputData1 - fMeasPhDiff[usAntChNum[0]-1]*100.f + fChcalPhDiff[usAntChNum[0]-1]*100.f; // 방사보정데이터에서 수집위상 빼고 채널보정데이터 더한다.
+		iPhInputData2 = iPhInputData2 - fMeasPhDiff[usAntChNum[1]-1]*100.f + fChcalPhDiff[usAntChNum[1]-1]*100.f; // 방사보정데이터에서 수집위상 빼고 채널보정데이터 더한다.
+	}
+	else
+	{                  
+		// 시뮬레이터 입력 위상 데이터[채널][방위][주파수] 파일에서 Load한 데이터 
+		//iPhInputData1 = (INT) pstBigArray->m_usPhInputData[usAntChNum[0]-1][iSetAnglePt][iSetFreqPt]; //LMS_MODIFY_20171222   iPhInputData1 = (INT) m_usPhInputData[usAntChNum[0]-1][iSetAnglePt][iSetFreqPt];
+		//iPhInputData2 = (INT) pstBigArray->m_usPhInputData[usAntChNum[1]-1][iSetAnglePt][iSetFreqPt]; //LMS_MODIFY_20171222   iPhInputData2 = (INT) m_usPhInputData[usAntChNum[1]-1][iSetAnglePt][iSetFreqPt];
+	}
+
+	/*
+	// 위상데이터 Scaled Radian 데이터 처리모드 일 때는 Scaled Radian 값을 Degree 값으로 변환후 연산 수행 (0도 : 0, 360도 : PI/180*2^13)
+	if (m_bPhaseDataDegApplyMode == FALSE) // 위상데이터 Scaled Radian 처리 모드
+	{
+		float fScaledRadianFactor = (float) ((PI/180)*8192); 
+
+		iPhInputData1 = (INT) ((iPhInputData1 / fScaledRadianFactor) / COMINT_PHASE_RESOLUTION); 
+		iPhInputData2 = (INT) ((iPhInputData2 / fScaledRadianFactor) / COMINT_PHASE_RESOLUTION); 		
+	}
+	*/
+
+	iPhDiff = (INT) (iPhInputData1 - iPhInputData2); // CV DF용 안테나간 위상차 연산
+
+	if (iDataFileType == 0)
+	{
+		// 방사보정 데이터일때는 에러수치를 더하지 않음 
+		iPhDiff = iPhDiff;
+	}
+	/*
+	//LMS_DEL_20190705
+	else
+	{
+		float fRandVariPhase;; 
+		float fSignVariable;
+		float fInputPhaseError[2];
+
+		// 2개의 개별 안테나에 대한 위상 Noise 에러 추출 
+		for (USHORT usAntChIndex = 0; usAntChIndex < 2; usAntChIndex++)
+		{
+			if (m_bPhaseInputErrorUniformNoise == TRUE)   // 위상 에러 입력 조건 선택 변수 Uniform Noise 선택으로 초기화,
+			{
+				if ((rand() % 2) == 0)
+					fSignVariable = 1.f;
+				else
+					fSignVariable = -1.f;
+
+				fRandVariPhase = (float) uniform(); // Uniform Noise 생성
+
+				fRandVariPhase *= fSignVariable; 	
+
+				fInputPhaseError[usAntChIndex] = m_fUniformInputPhaseError*fRandVariPhase;
+			}
+			else
+			{
+				float fAlpha = (float) pow(10.0f, (-1.f*m_fSnrInputPhaseError)/10.f); // SNR 입력값
+
+				complex complexGaussianNoise = gaussian_cmplx(sqrt(fAlpha/2.f)); // Gaussian Noise 생성 
+
+				float fRandVariNoiseI = (float) real(complexGaussianNoise); // Gaussian Noise에서 Real 값 산출
+				float fRandVariNoiseQ = (float) imag(complexGaussianNoise); // Gaussian Noise에서 Image 값 산출
+
+				if (fRandVariNoiseI == 0.f)
+					fRandVariPhase = 0.0f; // Real 값이 '0'인 있을 수 없는 값은 '0'도 값으로 처리
+				else
+					fRandVariPhase = atan2f(fRandVariNoiseQ, fRandVariNoiseI + 1.0f) * (180.0f / PI); // I&Q 값에서 위상값 산출: atan(Q/I, IM/RE)
+
+				if (fRandVariPhase < 0.0f)
+					fRandVariPhase = (float) fmod(fRandVariPhase + 360.0f, 360.0f); // '-'영역 위상값을 '+'영역으로 변환 
+
+				fInputPhaseError[usAntChIndex] = fRandVariPhase;
+			}	
+		}
+
+		// 시뮬레이션 데이터( 입사 신호 모의 )일때만 에러수치를 더함
+		iPhDiff += (INT) ((fInputPhaseError[0] - fInputPhaseError[1])/COMINT_PHASE_RESOLUTION);
+	}
+	//LMS_DEL_20190705
+	*/
+
+	// 측정용 위상데이터 대입, 입력 파라메터의 랜던 에러값 적용
+	if (iPhDiff >= 36000)
+	{
+		while (iPhDiff >= 36000)
+		{
+			iPhDiff = iPhDiff - 36000; 		
+		}
+	}
+	else if (iPhDiff  < 0)
+	{
+		while ( iPhDiff < 0 )
+		{
+			iPhDiff = iPhDiff + 36000; 		
+		}
+	}
+
+	return (USHORT) (iPhDiff & 0xFFFF);
+}
+/////////////방탐라이브러리화 될 때 삭제 //////////////////////////////////////////

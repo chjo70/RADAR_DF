@@ -1,0 +1,139 @@
+﻿빌드 시작: 2021-12-22 오후 3:26:07
+     1>2 노드의 "E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\ICAA\ICAA.vcxproj" 프로젝트(build 대상)입니다.
+     1>InitializeBuildStatus:
+         "AlwaysCreate"이(가) 지정되었기 때문에 "Release\ICAA.unsuccessfulbuild"을(를) 만들고 있습니다.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D _WINDOWS /D NDEBUG /D _MBCS /D _AFXDLL /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yc"StdAfx.h" /Fp"Release\ICAA.pch" /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D _WINDOWS /D NDEBUG /D _MBCS /D _AFXDLL /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Release\ICAA.pch" /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ADSBReceivedProcessMngr.cpp COMMIF\CGRCommIF.cpp COMMIF\CGRCommMngr.cpp COMMIF\CGRCommObj.cpp COMMIF\CommonMngr.cpp COMMIF\ComplibFacade.cpp ICAA.cpp ICAADlg.cpp ICAAMngr.cpp MsgQueueThread.cpp PING\ping.cpp PING\pingICMP.cpp PING\pingICMP2.cpp PING\PingThread.cpp RadarAnalysisMngr.cpp ThreadLIB\LIGCondition.cpp ThreadLIB\LIGLock.cpp ThreadLIB\LIGThread.cpp ThreadTask\DFEquipBITMngr.cpp ThreadTask\DFTaskMngr.cpp
+         ADSBReceivedProcessMngr.cpp
+     1>ADSBReceivedProcessMngr.cpp(730): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(735): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(867): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(889): warning C4244: '초기화 중' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(900): warning C4244: '=' : 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(931): warning C4244: '초기화 중' : 'double'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(991): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(994): warning C4244: '=' : 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(1013): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(1016): warning C4244: '=' : 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ADSBReceivedProcessMngr.cpp(1049): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : 'strcpy' 선언을 참조하십시오.
+         CGRCommIF.cpp
+     1>COMMIF\CGRCommIF.cpp(37): warning C4800: 'BOOL' : 'true' 또는 'false'로 bool 값을 강제하고 있습니다(성능 경고).
+     1>COMMIF\CGRCommIF.cpp(359): warning C4305: 'return' : 'int'에서 'bool'(으)로 잘립니다.
+     1>COMMIF\CGRCommIF.cpp(379): warning C4305: 'return' : 'int'에서 'bool'(으)로 잘립니다.
+     1>COMMIF\CGRCommIF.cpp(347): warning C4101: 'iRet' :참조되지 않은 지역 변수입니다.
+     1>COMMIF\CGRCommIF.cpp(396): warning C4800: 'int' : 'true' 또는 'false'로 bool 값을 강제하고 있습니다(성능 경고).
+         CGRCommMngr.cpp
+         CGRCommObj.cpp
+     1>COMMIF\CGRCommObj.cpp(3142): warning C4018: '<' : signed 또는 unsigned가 일치하지 않습니다.
+         CommonMngr.cpp
+         ComplibFacade.cpp
+     1>COMMIF\ComplibFacade.cpp(6): warning C4244: '인수' : 'double'에서 'uLong'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+         ICAA.cpp
+         ICAADlg.cpp
+     1>e:\해력작업폴더\rms 개발\x_band 개발\pdw 프로그램\pdwtest\radar_df\icaa\ADSBReceivedProcessMngr.h(14): warning C4005: 'PI' : 매크로 재정의
+                 e:\해력작업폴더\rms 개발\x_band 개발\pdw 프로그램\pdwtest\radar_df\icaa\DFData.h(27) : 'PI'의 이전 정의를 참조하십시오.
+         ICAAMngr.cpp
+         MsgQueueThread.cpp
+         ping.cpp
+         pingICMP.cpp
+         pingICMP2.cpp
+         PingThread.cpp
+         RadarAnalysisMngr.cpp
+         LIGCondition.cpp
+         LIGLock.cpp
+         LIGThread.cpp
+         DFEquipBITMngr.cpp
+         DFTaskMngr.cpp
+     1>ThreadTask\DFTaskMngr.cpp(780): warning C4800: 'unsigned int' : 'true' 또는 'false'로 bool 값을 강제하고 있습니다(성능 경고).
+     1>ThreadTask\DFTaskMngr.cpp(802): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : 'strcpy' 선언을 참조하십시오.
+     1>ThreadTask\DFTaskMngr.cpp(958): warning C4244: '=' : 'double'에서 'short'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(989): warning C4244: '=' : 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(993): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(994): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(995): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(996): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(997): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(1183): warning C4101: 'stPDWData' :참조되지 않은 지역 변수입니다.
+     1>ThreadTask\DFTaskMngr.cpp(1186): warning C4101: 'pIQ' :참조되지 않은 지역 변수입니다.
+     1>ThreadTask\DFTaskMngr.cpp(1297): warning C4800: 'BOOL' : 'true' 또는 'false'로 bool 값을 강제하고 있습니다(성능 경고).
+     1>ThreadTask\DFTaskMngr.cpp(1328): warning C4800: 'BOOL' : 'true' 또는 'false'로 bool 값을 강제하고 있습니다(성능 경고).
+     1>ThreadTask\DFTaskMngr.cpp(1359): warning C4800: 'BOOL' : 'true' 또는 'false'로 bool 값을 강제하고 있습니다(성능 경고).
+     1>ThreadTask\DFTaskMngr.cpp(1422): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : 'strcpy' 선언을 참조하십시오.
+     1>ThreadTask\DFTaskMngr.cpp(1792): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 'fopen' 선언을 참조하십시오.
+     1>ThreadTask\DFTaskMngr.cpp(1807): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(253) : 'fscanf' 선언을 참조하십시오.
+     1>ThreadTask\DFTaskMngr.cpp(1852): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(253) : 'fscanf' 선언을 참조하십시오.
+     1>ThreadTask\DFTaskMngr.cpp(1855): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(253) : 'fscanf' 선언을 참조하십시오.
+     1>ThreadTask\DFTaskMngr.cpp(1993): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(1994): warning C4244: '=' : 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(1997): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(2001): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(2005): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(2009): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(2013): warning C4244: '=' : 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(2034): warning C4244: '=' : 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+     1>ThreadTask\DFTaskMngr.cpp(2056): warning C4018: '>=' : signed 또는 unsigned가 일치하지 않습니다.
+     1>ThreadTask\DFTaskMngr.cpp(2139): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : 'strcpy' 선언을 참조하십시오.
+     1>ThreadTask\DFTaskMngr.cpp(2273): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : 'strcpy' 선언을 참조하십시오.
+       ResourceCompile:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /D NDEBUG /D _AFXDLL /l"0x0412" /IRelease\ /nologo /fo"Release\ICAA.res" ICAA.rc 
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\ICAA.exe" /INCREMENTAL:NO /NOLOGO zlib.lib Iphlpapi.lib RcvFuncTcp.lib RADARDIR.lib RADARANL.lib DF_LIB_PhaseDF.lib /MANIFEST /ManifestFile:"Release\ICAA.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\ICAA.pdb" /SUBSYSTEM:WINDOWS /HEAP:"1024000","1024000" /STACK:"10485760" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\ICAA.lib" /MACHINE:X86 Release\ICAA.res
+         Release\ADSBReceivedProcessMngr.obj
+         Release\CGRCommIF.obj
+         Release\CGRCommMngr.obj
+         Release\CGRCommObj.obj
+         Release\CommonMngr.obj
+         Release\ComplibFacade.obj
+         Release\ICAA.obj
+         Release\ICAADlg.obj
+         Release\ICAAMngr.obj
+         Release\MsgQueueThread.obj
+         Release\ping.obj
+         Release\pingICMP.obj
+         Release\pingICMP2.obj
+         Release\PingThread.obj
+         Release\RadarAnalysisMngr.obj
+         Release\stdafx.obj
+         Release\LIGCondition.obj
+         Release\LIGLock.obj
+         Release\LIGThread.obj
+         Release\DFEquipBITMngr.obj
+         Release\DFTaskMngr.obj
+     1>zlib.lib(compress.obj) : warning LNK4075: '/EDITANDCONTINUE'이(가) '/OPT:ICF' 사양으로 인해 무시됩니다.
+     1>LINK : warning LNK4098: 'MSVCRTD' defaultlib가 다른 라이브러리와 충돌합니다. /NODEFAULTLIB:library를 사용하십시오.
+         코드를 생성하고 있습니다.
+     1>e:\해력작업폴더\rms 개발\x_band 개발\pdw 프로그램\pdwtest\radar_df\icaa\radaranalysismngr.cpp(671): warning C4700: 초기화되지 않은 'pLOBData' 지역 변수를 사용했습니다.
+     1>e:\해력작업폴더\rms 개발\x_band 개발\pdw 프로그램\pdwtest\radar_df\icaa\radaranalysismngr.cpp(675): warning C4700: 초기화되지 않은 'pABTData' 지역 변수를 사용했습니다.
+         코드를 생성했습니다.
+     1>zlib.lib(adler32.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(adler32.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+     1>zlib.lib(compress.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(compress.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+     1>zlib.lib(crc32.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(crc32.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+     1>zlib.lib(deflate.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(deflate.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+     1>zlib.lib(inffast.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(inffast.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+     1>zlib.lib(inflate.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(inflate.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+     1>zlib.lib(inftrees.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(inftrees.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+     1>zlib.lib(trees.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(trees.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+     1>zlib.lib(uncompr.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(uncompr.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+     1>zlib.lib(zutil.obj) : warning LNK4099: 'vc100.pdb' PDB를 'zlib.lib(zutil.obj)' 또는 'E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\vc100.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+         ICAA.vcxproj -> E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\ICAA.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\Release\ICAA.exe;#1" /manifest Release\ICAA.exe.intermediate.manifest "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\Include\Manifest\dpiaware.manifest"
+       FinalizeBuildStatus:
+         "Release\ICAA.unsuccessfulbuild" 파일을 삭제하고 있습니다.
+         "Release\ICAA.lastbuildstate"에 연결(touching)하고 있습니다.
+     1>"E:\해력작업폴더\RMS 개발\X_Band 개발\PDW 프로그램\pdwTest\RADAR_DF\ICAA\ICAA.vcxproj" 프로젝트를 빌드했습니다(build 대상).
+
+빌드했습니다.
+
+경과 시간: 00:00:08.56

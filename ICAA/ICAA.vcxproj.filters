@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="COMMIF">
+      <UniqueIdentifier>{9a434571-1564-41e2-88fb-85ac5ae49be4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PING">
+      <UniqueIdentifier>{6fb685cf-e75a-47bd-a620-f2ca3411f03a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThreadLIB">
+      <UniqueIdentifier>{358f5047-c47c-4257-97e1-c41cf85a9a97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThreadTask">
+      <UniqueIdentifier>{0f1798fd-ab2b-4b88-ae40-359e3437c9e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThreadTask\RadarDirAlgorithm">
+      <UniqueIdentifier>{182982a6-154f-4209-99b1-ab71adbaa2dd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="res\ICAA.rc2">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\ICAA.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ICAA.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ICAADlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PING\ping.h">
+      <Filter>PING</Filter>
+    </ClInclude>
+    <ClInclude Include="PING\PingThread.h">
+      <Filter>PING</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\CGRCommIF.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\CGRCommMngr.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\CGRCommObj.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\CommStruct.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\ComplibFacade.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\ExternalIcd.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\ExternalIcdCommon.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\zconf.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\zlib.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="PING\pingICMP.h">
+      <Filter>PING</Filter>
+    </ClInclude>
+    <ClInclude Include="PING\pingICMP2.h">
+      <Filter>PING</Filter>
+    </ClInclude>
+    <ClInclude Include="ICAAMngr.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadLIB\LIGCondition.h">
+      <Filter>ThreadLIB</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadLIB\LIGLock.h">
+      <Filter>ThreadLIB</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadLIB\LIGThread.h">
+      <Filter>ThreadLIB</Filter>
+    </ClInclude>
+    <ClInclude Include="MsgQueueThread.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMIF\CommonMngr.h">
+      <Filter>COMMIF</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadTask\DFMsgDefnt.h">
+      <Filter>ThreadTask</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadTask\DFTaskMngr.h">
+      <Filter>ThreadTask</Filter>
+    </ClInclude>
+    <ClInclude Include="RadarAnalysisMngr.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ADSBReceivedProcessMngr.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadTask\DFEquipBITMngr.h">
+      <Filter>ThreadTask</Filter>
+    </ClInclude>
+    <ClInclude Include="RadarAnlAlgorithm.h">
+      <Filter>ThreadTask\RadarDirAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="RadarDirAlgorithm.h">
+      <Filter>ThreadTask\RadarDirAlgorithm</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ICAA.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ICAADlg.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PING\ping.cpp">
+      <Filter>PING</Filter>
+    </ClCompile>
+    <ClCompile Include="PING\PingThread.cpp">
+      <Filter>PING</Filter>
+    </ClCompile>
+    <ClCompile Include="COMMIF\CGRCommIF.cpp">
+      <Filter>COMMIF</Filter>
+    </ClCompile>
+    <ClCompile Include="COMMIF\CGRCommMngr.cpp">
+      <Filter>COMMIF</Filter>
+    </ClCompile>
+    <ClCompile Include="COMMIF\CGRCommObj.cpp">
+      <Filter>COMMIF</Filter>
+    </ClCompile>
+    <ClCompile Include="COMMIF\ComplibFacade.cpp">
+      <Filter>COMMIF</Filter>
+    </ClCompile>
+    <ClCompile Include="PING\pingICMP.cpp">
+      <Filter>PING</Filter>
+    </ClCompile>
+    <ClCompile Include="PING\pingICMP2.cpp">
+      <Filter>PING</Filter>
+    </ClCompile>
+    <ClCompile Include="ICAAMngr.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadLIB\LIGCondition.cpp">
+      <Filter>ThreadLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadLIB\LIGLock.cpp">
+      <Filter>ThreadLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadLIB\LIGThread.cpp">
+      <Filter>ThreadLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="MsgQueueThread.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="COMMIF\CommonMngr.cpp">
+      <Filter>COMMIF</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadTask\DFTaskMngr.cpp">
+      <Filter>ThreadTask</Filter>
+    </ClCompile>
+    <ClCompile Include="RadarAnalysisMngr.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ADSBReceivedProcessMngr.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadTask\DFEquipBITMngr.cpp">
+      <Filter>ThreadTask</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ICAA.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
