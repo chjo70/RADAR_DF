@@ -3267,7 +3267,7 @@ void CGRCommObj::SetConnectionInfo(int i_iConnectionType, bool i_bConnection)
 	}
 	else
 	{
-		TRACE ("[PORT : %d,  연결실패 또는 해제]\n", iPort);
+		//TRACE ("[PORT : %d,  연결실패 또는 해제]\n", iPort);
 	}
 }
 
