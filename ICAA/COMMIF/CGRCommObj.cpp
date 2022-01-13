@@ -2928,7 +2928,7 @@ void CGRCommObj::RecvPacketFromDataLink1Frame(BYTE* i_pucData, int i_iSize)
 // 항공에 ACK 전송
 int CGRCommObj::SendAckToDataLink(int i_iFrameType, BYTE* i_pucData)
 {
-	int iRet;
+	int iRet=0;
 
 	if ( i_iFrameType == FLAG_FRAME_YES )
 	{
@@ -3324,7 +3324,8 @@ bool CGRCommObj::GetPDWCHCorretConnStatus()
 {
 	bool isConn = false;
 
-	if(m_bHeartbeatConnection_2 && /*m_bHeartbeatConnection_3 &&*/ m_bHeartbeatConnection_4)
+	//확인필요_220113
+	if(m_bHeartbeatConnection_2 /*&& m_bHeartbeatConnection_3 && m_bHeartbeatConnection_4*/)
 		isConn = true;
 
 	return isConn;

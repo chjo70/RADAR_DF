@@ -10,7 +10,7 @@
 
 #define WM_USER_LOGMSG				(7011)
 
-#include "../RADARDIR/RadarDirAlgorithm.h"
+#include "RadarDirAlgorithm.h"
 
 //
 // RADARDIR 프로젝트 내에서 최소 내용만 구조체 정의를 복사한 것임.

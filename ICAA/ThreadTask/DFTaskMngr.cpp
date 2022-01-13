@@ -601,7 +601,34 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 
 			//StartChannelCorrect(MODE_INIT_TYPE);
-			StartCheckPDWConTimer();
+			//StartCheckPDWConTimer(); 
+
+			//채널보정 CW시간 빠르게 조절
+			//m_stSystemVal.uiCWDecisionPW = 245;
+			//m_stSystemVal.uiCWChoppinginterval = 245;
+
+			int opPDW_SetsysVal = MakeOPCode(CMDCODE_DF_TX_PDW_SYS_SET, DEVICECODE_TRD, DEVICECODE_TDP);
+
+			//m_hCommIF.Send(opPDW_SetsysVal, sizeof(m_stSystemVal), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&m_stSystemVal); 
+			TRACE("채널보정을 빠르게 진행하기 위한 CW 초기 설정################### \n");
+			m_bStartChannelCorrect = FALSE;
+			if (m_bStartChannelCorrect == FALSE)
+			{
+				m_bStartChannelCorrect = TRUE;
+				InitFileFromStartChCorrect();
+
+				//g_RcvFunc.Finish();
+				//g_RcvTempFunc = &g_RcvFunc;
+
+				StartChannelCorrect(MODE_INIT_TYPE);
+				//g_RcvTempFunc->Finish();
+			}
+			else
+			{
+				// 			CString  strcommand;
+				// 			strcommand.Format("SENSe:FREQuency:CENTer?");
+				// 			bool bfail = g_RcvFunc.SCPI_CommendQuery(strcommand);
+			}
 			
 			//채널보정 결과 전송(100)
 			//주기적으로 채널보정 상태 전송 -timer로 구현 필요
@@ -1057,7 +1084,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				}
 				else;				
 
-				//if(i > 3) 
+				if(i > 3) 
 				{
 					++ pPDW;
 					++ pPDWToAOA;
@@ -1101,7 +1128,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 					int opcode = MakeOPCode(CMDCODE_UHF_TX_SET_ANT_MODE, DEVICECODE_TRD, DEVICECODE_TVU);	
 					STxUHFSetAntMode SetAntMode;
 					SetAntMode.ucCalAntMode = 1;
-					m_hCommIF.Send(opcode, sizeof(SetAntMode),m_LinkInfo+1, Equip_Rev_VU, m_POSNIP, (void*)&SetAntMode);					
+					//m_hCommIF.Send(opcode, sizeof(SetAntMode),m_LinkInfo+1, Equip_Rev_VU, m_POSNIP, (void*)&SetAntMode);					
 
 					STxChCorrectRslt chCorrectRslt;
 					chCorrectRslt.uiResult = 100;
@@ -1676,12 +1703,12 @@ void CDFTaskMngr::CheckPDWConnStatus()
 		StopPDWConnStatusTimer();
 
 		//채널보정 CW시간 빠르게 조절
-		m_stSystemVal.uiCWDecisionPW = 245;
-		m_stSystemVal.uiCWChoppinginterval = 245;
+		//m_stSystemVal.uiCWDecisionPW = 245;
+		//m_stSystemVal.uiCWChoppinginterval = 245;
 
 		int opPDW_SetsysVal = MakeOPCode(CMDCODE_DF_TX_PDW_SYS_SET, DEVICECODE_TRD, DEVICECODE_TDP);
 
-		m_hCommIF.Send(opPDW_SetsysVal, sizeof(m_stSystemVal), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&m_stSystemVal); 
+		//m_hCommIF.Send(opPDW_SetsysVal, sizeof(m_stSystemVal), m_LinkInfo, Equip_Rev_DP, m_POSNIP, (void*)&m_stSystemVal); 
 		TRACE("채널보정을 빠르게 진행하기 위한 CW 초기 설정################### \n");
 
 		if (m_bStartChannelCorrect == FALSE)
@@ -1689,7 +1716,7 @@ void CDFTaskMngr::CheckPDWConnStatus()
 			m_bStartChannelCorrect = TRUE;
 			InitFileFromStartChCorrect();
 
-			//g_RcvFunc.Finish();
+			g_RcvFunc.Finish();
 			g_RcvTempFunc = &g_RcvFunc;
 
 			StartChannelCorrect(MODE_INIT_TYPE);
