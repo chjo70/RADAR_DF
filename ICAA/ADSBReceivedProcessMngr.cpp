@@ -1,4 +1,8 @@
 #include "stdafx.h"
+
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "ADSBReceivedProcessMngr.h"
 
 // ADSB 서버 To 수신국_ADSB(AS=ADSB데몬)
@@ -290,14 +294,14 @@ double CADSBReceivedProcessMngr::NL_lat(double i_dbLat)
 	double lowerRst = 0;
 	double dbNZ = 15.0;
 
-	upperRst = 1 - cos(PI/(2*dbNZ));
-	lowerRst = cos(PI*i_dbLat/180.0) * cos(PI*i_dbLat/180.0);
+	upperRst = 1 - cos(M_PI/(2*dbNZ));
+	lowerRst = cos(M_PI*i_dbLat/180.0) * cos(M_PI*i_dbLat/180.0);
 
 	dbCombinedRst = upperRst / lowerRst;
 
 	dbArccosRst = acos(1 - dbCombinedRst);
 
-	lastRst = (2*PI)/dbArccosRst;
+	lastRst = (2*M_PI)/dbArccosRst;
 
 	dbRst = floor(lastRst);
 
@@ -727,12 +731,12 @@ bool CADSBReceivedProcessMngr::ParseAP(STADSBRawPacket* i_stADSBRawPacket, STADS
 	// CPR Latitude Odd or Even
 	ConvertBinaryToInt(acOutputBinary+54, 17, &iRstOfInt);
 
-	fCPR_LAT = iRstOfInt/131072.0;
+	fCPR_LAT = (float) ( iRstOfInt/131072.0 );
 
 	// CPR Longitude Odd or Even
 	ConvertBinaryToInt(acOutputBinary+71, 17, &iRstOfInt);
 
-	fCPR_LON = iRstOfInt/131072.0;
+	fCPR_LON = (float) ( iRstOfInt/131072.0 );
 
 	if(iIsEven == 0)
 	{
@@ -864,7 +868,7 @@ bool CADSBReceivedProcessMngr::ParseAV(STADSBRawPacket* i_stADSBRawPacket, STADS
 			i_stADSBDecodedData->fVel = fVel;
 
 			// Calculate heading
-			fHeading = atan2((double)iV_we, (double)iV_sn) * 360.0 / (2 * PI);
+			fHeading = (float) ( atan2((double)iV_we, (double)iV_sn) * 360.0 / (2 * M_PI) );
 
 			if(fHeading < 0)
 			{
@@ -886,7 +890,7 @@ bool CADSBReceivedProcessMngr::ParseAV(STADSBRawPacket* i_stADSBRawPacket, STADS
 
 				int iDeciHdg = iRstOfInt;
 
-				float	fHeading = iDeciHdg/1024.0 * 360;
+				float fHeading = (float) ( iDeciHdg/1024.0 * 360 );
 
 				i_stADSBDecodedData->fHeading = fHeading;
 			}
@@ -897,7 +901,7 @@ bool CADSBReceivedProcessMngr::ParseAV(STADSBRawPacket* i_stADSBRawPacket, STADS
 			int iAirSpeed_knot = iRstOfInt;
 
 			i_stADSBDecodedData->bIsGroundSpeed = false;
-			i_stADSBDecodedData->fVel = iAirSpeed_knot;
+			i_stADSBDecodedData->fVel = (float) iAirSpeed_knot;
 		}
 		break;
 
@@ -928,7 +932,7 @@ bool CADSBReceivedProcessMngr::CalcLat_Lon(bool i_bIsEvenRecently, STADSBDecoded
 	float i_fCPR_LON_ODD = i_pstADSBDecodedData->fLonOdd;
 
 	// Calculate the latitude index j
-	unsigned int uidxJ = floor( 59.0*i_fCPR_LAT_EVEN - 60.0*i_fCPR_LAT_ODD + 0.5 );
+	unsigned int uidxJ = (unsigned int) floor( 59.0*i_fCPR_LAT_EVEN - 60.0*i_fCPR_LAT_ODD + 0.5 );
 
 	// Calculate latitude
 	unsigned int uiNZ = 15;
@@ -988,10 +992,10 @@ bool CADSBReceivedProcessMngr::CalcLat_Lon(bool i_bIsEvenRecently, STADSBDecoded
 			}
 
 			// Calculate dLon
-			fDLon = 360.0/(float)(uiNi);
+			fDLon = (float) ( 360.0/(float)(uiNi) );
 
 			// Calculate m
-			iM = floor(i_fCPR_LON_EVEN*(NL_lat(fLat_Even)-1.0) - i_fCPR_LON_ODD*NL_lat(fLat_Even) + 0.5);
+			iM = (int) ( floor(i_fCPR_LON_EVEN*(NL_lat(fLat_Even)-1.0) - i_fCPR_LON_ODD*NL_lat(fLat_Even) + 0.5) );
 
 			// Calculate Lon
 			fLon = fDLon*(iM%uiNi + i_fCPR_LON_EVEN);
@@ -1010,10 +1014,10 @@ bool CADSBReceivedProcessMngr::CalcLat_Lon(bool i_bIsEvenRecently, STADSBDecoded
 			}
 
 			// Calculate dLon
-			fDLon = 360.0/(float)(uiNi);
+			fDLon = (float) ( 360.0/(float)(uiNi) );
 
 			// Calculate m
-			iM = floor(i_fCPR_LON_EVEN*(NL_lat(fLat_Odd)-1) - i_fCPR_LON_ODD*NL_lat(fLat_Odd) + 0.5);
+			iM = (int) ( floor(i_fCPR_LON_EVEN*(NL_lat(fLat_Odd)-1) - i_fCPR_LON_ODD*NL_lat(fLat_Odd) + 0.5) );
 
 			// Calculate Lon
 			fLon = fDLon*(iM%uiNi + i_fCPR_LON_ODD);
@@ -1046,7 +1050,7 @@ bool CADSBReceivedProcessMngr::PutTrackTimeInfo(STADSBDecodedData* i_stADSBDecod
 	GetLocalTime(&stLocalSysTime);
 	cstrLocalSysTime.Format("%04d%02d%02d%02d%02d%02d%03d", stLocalSysTime.wYear, stLocalSysTime.wMonth, stLocalSysTime.wDay, stLocalSysTime.wHour, stLocalSysTime.wMinute, stLocalSysTime.wSecond, stLocalSysTime.wMilliseconds);
 
-	strcpy((char*)(&i_stADSBDecodedData->acTrackTime[0]), cstrLocalSysTime);
+	strcpy_s((char*)(&i_stADSBDecodedData->acTrackTime[0]), sizeof(i_stADSBDecodedData->acTrackTime), cstrLocalSysTime);
 
 	return bRtn;
 }

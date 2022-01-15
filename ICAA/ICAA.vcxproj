@@ -59,7 +59,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>zlib.lib;Iphlpapi.lib;RcvFuncTcp.lib;RADARDIR.lib;RADARANL.lib;DF_LIB_PhaseDF.lib</AdditionalDependencies>
+      <AdditionalDependencies>zlib.lib;Iphlpapi.lib;RcvFuncTcp.lib;RADARDIR.lib;DF_LIB_PhaseDF.lib</AdditionalDependencies>
       <HeapReserveSize>1024000</HeapReserveSize>
       <HeapCommitSize>1024000</HeapCommitSize>
       <StackReserveSize>10485760</StackReserveSize>
@@ -162,7 +162,6 @@
     <ClCompile Include="PING\pingICMP.cpp" />
     <ClCompile Include="PING\pingICMP2.cpp" />
     <ClCompile Include="PING\PingThread.cpp" />
-    <ClCompile Include="RadarAnalysisMngr.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

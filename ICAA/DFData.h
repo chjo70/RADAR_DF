@@ -24,7 +24,7 @@ struct _stBigArray
 {
 	USHORT	m_usPhDfRomData[FREQ_RANGE_END_MHz-FREQ_RANGE_START_MHz+1][DF_AZIMUTH_NUM][DF_CH_NUM];     //m_usPhDfRomData[9][360][2501]; // 방사보정용 위상 ROM 데이터[채널][방위][주파수] : 방위 0~360, 1도 Step, 주파수 500MHz~3000MHz, 1MHz Step
 };
-#define	PI							(float)(3.14159265)
+//#define	PI							(float)(3.14159265)
 //LMS_ADD_20190705 방향탐지 알고리즘(CVDF)함수
 #define COMINT_PHASE_RESOLUTION	 	0.01f		// COMNT 위상(위상차) 해상도(16Bit, 0.01도)
 #define DIRECT_COS_CALCULATION_APPLY_MODE					// CVDF 연산시 Direct Cosin 연산수행 여부 지정

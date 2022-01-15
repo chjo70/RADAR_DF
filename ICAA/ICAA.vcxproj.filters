@@ -188,9 +188,6 @@
     <ClCompile Include="ThreadTask\DFTaskMngr.cpp">
       <Filter>ThreadTask</Filter>
     </ClCompile>
-    <ClCompile Include="RadarAnalysisMngr.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="ADSBReceivedProcessMngr.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>

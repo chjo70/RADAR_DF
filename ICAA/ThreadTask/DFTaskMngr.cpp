@@ -834,7 +834,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 					//PDW 요청
 					if(m_iMode == MODE_INIT_TYPE) //채널보정
 					{					
-						strcpy( (char *) req_PDWData.aucTaskID, "채널보정_초기셋팅" );
+						strcpy_s( (char *) req_PDWData.aucTaskID, sizeof(req_PDWData.aucTaskID), "채널보정_초기셋팅" );
 						req_PDWData.iPDWCnt = 10;					
 					}
 					//else if(m_iMode == MODE_CRT_TYPE)
@@ -1025,11 +1025,11 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 					freqLOB = m_stCurTaskData.uiFreq + (short)pPDW->iFreq;
 				}
 				
-				fph[0] = (pPDW->iph[0] * PH_DIFF);
-				fph[1] = (pPDW->iph[1] * PH_DIFF);
-				fph[2] = (pPDW->iph[2] * PH_DIFF);
-				fph[3] = (pPDW->iph[3] * PH_DIFF);
-				fph[4] = (pPDW->iph[4] * PH_DIFF);				
+				fph[0] = (float) (pPDW->iph[0] * PH_DIFF);
+				fph[1] = (float) (pPDW->iph[1] * PH_DIFF);
+				fph[2] = (float) (pPDW->iph[2] * PH_DIFF);
+				fph[3] = (float) (pPDW->iph[3] * PH_DIFF);
+				fph[4] = (float) (pPDW->iph[4] * PH_DIFF);				
 
 				TRACE("Freq_r %d, llTOA %10I64d, Freq %d, iPA %d, iPulseType %d, iPW %d, iPFTag %d, iph_1 %d, iph_2 %d, iph_3 %d, iph_4 %d, iph_5 %d  \n",
 					Freq, pPDW->llTOA, pPDW->iFreq, pPDW->iPA, pPDW->iPulseType, pPDW->iPW, pPDW->iPFTag, pPDW->iph[0], pPDW->iph[1], pPDW->iph[2],
@@ -1336,7 +1336,7 @@ void CDFTaskMngr::StopReqTaskRetryTimer()
 	if ( m_hRqTaskRetryTimerQueue == NULL )
 		return;
 
-	bool bRtn = DeleteTimerQueueTimer(m_hRqTaskRetryTimerQueue, m_hRqTaskRetryTimer, NULL);
+	BOOL bRtn = DeleteTimerQueueTimer(m_hRqTaskRetryTimerQueue, m_hRqTaskRetryTimer, NULL);
 
 	if(bRtn)
 	{
@@ -1398,7 +1398,7 @@ void CDFTaskMngr::StopPDWConnStatusTimer()
 	if ( m_hPDWConTimerQueue == NULL )
 		return;
 
-	bool bRtn = DeleteTimerQueueTimer(m_hPDWConTimerQueue, m_hPDWConStatTimer, NULL);
+	BOOL bRtn = DeleteTimerQueueTimer(m_hPDWConTimerQueue, m_hPDWConStatTimer, NULL);
 
 	if(bRtn)
 	{
@@ -1846,7 +1846,7 @@ BOOL CDFTaskMngr::LoadDfCalRomDataPh()
 
 		CHAR szGetTemp[30];
 		for (INT nTempIndex = 0; nTempIndex < COMINT_MAX_CHANNEL_COUNT+3; nTempIndex++)//LMS_MODIFY_20171221 for (INT nTempIndex = 0; nTempIndex < COMINT_MAX_CHANNEL_COUNT+2; nTempIndex++) // 파일에서 제목 타이틀 줄 읽어서 버림
-			fscanf(fpFile, "%s", szGetTemp );
+			fscanf_s(fpFile, "%s", szGetTemp );
 
 		UINT	uiGetPhase[5];
 		INT		iGetFileStaus;
@@ -1891,7 +1891,7 @@ BOOL CDFTaskMngr::LoadDfCalRomDataPh()
 			for (USHORT usAngle = (USHORT) m_fStartAngle; usAngle <= m_fStopAngle; usAngle += usAngleStep) // 방위 루프
 			{
 				//LMS_MODIFY_20171221 iGetFileStaus =	fscanf(fpFile, "%f\t%f\t", &m_fGetGenFreq[iSetAnglePt][iSetFreqPt], &m_fGetGenBear[iSetAnglePt][iSetFreqPt]);
-				iGetFileStaus =	fscanf(fpFile, "%d\t%f\t%f\t", &uiBand, &fGetGenFreq, &fGetGenBear);
+				iGetFileStaus =	fscanf_s(fpFile, "%d\t%f\t%f\t", &uiBand, &fGetGenFreq, &fGetGenBear);
 				//pstBigArray->m_fGetGenFreq[iSetAnglePt][iSetFreqPt] = fGetGenFreq;//LMS_MODIFY_20171222  m_fGetGenFreq[iSetAnglePt][iSetFreqPt] = fGetGenFreq;
 				//pstBigArray->m_fGetGenBear[iSetAnglePt][iSetFreqPt] = fGetGenBear;//LMS_MODIFY_20171222  m_fGetGenBear[iSetAnglePt][iSetFreqPt] = fGetGenBear;
 				iGetFileStaus =	fscanf(fpFile, "%d\t%d\t%d\t%d\t%d", &uiGetPhase[0], &uiGetPhase[1], &uiGetPhase[2], &uiGetPhase[3], &uiGetPhase[4]);
@@ -2032,27 +2032,26 @@ int CDFTaskMngr::GetAOADataFromAlgrism(UINT iFreq, int i_idxFreq, float * fchMea
 		while( in.good() == true )	//#FA_C_PotentialUnboundedLoop_T1
 		{		
 			in.getline(buf, CSV_BUF, ',');
-			nTemp = _ttof(buf);
-			nchCorrectData.iFreq = nTemp;			
+			nchCorrectData.iFreq = _ttoi(buf);
 
 			in.getline(buf, CSV_BUF, ',');
-			nTemp = _ttof(buf);
+			nTemp = (float) _ttof(buf);
 			nchCorrectData.fph[0] = nTemp;
 
 			in.getline(buf, CSV_BUF, ',');
-			nTemp = _ttof(buf);
+			nTemp = (float) _ttof(buf);
 			nchCorrectData.fph[1] = nTemp;
 
 			in.getline(buf, CSV_BUF, ',');
-			nTemp = _ttof(buf);
+			nTemp = (float) _ttof(buf);
 			nchCorrectData.fph[2] = nTemp;
 
 			in.getline(buf, CSV_BUF, ',');
-			nTemp = _ttof(buf);
+			nTemp = (float) _ttof(buf);
 			nchCorrectData.fph[3] = nTemp;
 
 			in.getline(buf, CSV_BUF, '\n');
-			nTemp = _ttof(buf);
+			nTemp = (float) _ttof(buf);
 			nchCorrectData.fph[4] = nTemp;	
 
 			if(nchCorrectData.iFreq == iFreq)
@@ -2073,7 +2072,7 @@ int CDFTaskMngr::GetAOADataFromAlgrism(UINT iFreq, int i_idxFreq, float * fchMea
 	TRACE("측정데이터 Index %d, ch_1 %f, ch_2 %f, ch_3 %f, ch_4 %f, ch_5 %f \n", i_idxFreq, fchcalPHDiff[0],  fchcalPHDiff[1], fchcalPHDiff[2], fchcalPHDiff[3], fchcalPHDiff[4]);
 	//이명식 수석님 함수 호출
 
-	iAOA =  DllDoCvDfAlgoOperation((INT)i_idxFreq, nchCorrectData.fph, fchcalPHDiff, pstBigArray) * 100.f;
+	iAOA = (int) ( DllDoCvDfAlgoOperation((INT)i_idxFreq, nchCorrectData.fph, fchcalPHDiff, pstBigArray) * 100.f );
 
 
 	return iAOA;
@@ -2095,7 +2094,7 @@ int CDFTaskMngr::GetCloseDFFreq(UINT Freq)
 			break;
 		}
 
-		if(nFreq >=  Freq)  
+		if( nFreq >=  Freq)  
 		{
 			bigDiff = abs(nFreq  - (int)Freq);
 			break;
@@ -2178,7 +2177,7 @@ void CDFTaskMngr::StartChannelCorrect(int i_nModeType)
 	TRACE("GCONtrol %d\n", bfail);*/
 	Sleep(100);
 	_PDW_COLECTSET set_collect;
-	strcpy( (char *) set_collect.aucTaskID, "채널보정_초기셋팅" );
+	strcpy_s( (char *) set_collect.aucTaskID, sizeof(set_collect.aucTaskID), "채널보정_초기셋팅" );
 
 	//8.1 이하 -15
 	if(m_Freq <= 8100){
@@ -2320,7 +2319,7 @@ void CDFTaskMngr::ReqTaskRetry()
 		StopReqTaskRetryTimer();
 
 		_PDW_COLECTSET set_collect;
-		strcpy( (char *) set_collect.aucTaskID, (char *)m_stCurTaskData.aucTaskID );
+		strcpy_s( (char *) set_collect.aucTaskID, sizeof(set_collect.aucTaskID), (char *)m_stCurTaskData.aucTaskID );
 	
 		if(m_LinkInfo == LINK1_ID)
 			set_collect.iRxThresholdValue = m_stCurTaskData.iRxThresholdValue1;

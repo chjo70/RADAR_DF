@@ -109,7 +109,7 @@ static void AllEndian64(void *i_pData, UINT i_nSize)
 #define LENGTH_OF_TASK_ID			(19+1)		//과제ID 문자열 길이 (TBD)
 
 #define RX_MAX_PDW						(4096)
-#define MAX_RADARNAME					(9+1)
+//#define MAX_RADARNAME					(9+1)
 
 //#define MAX_FREQ_PRI_STEP				(16)
 

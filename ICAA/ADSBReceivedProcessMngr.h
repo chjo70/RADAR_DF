@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <cmath>
 
-#define PI 3.1415926535897
+//#define PI 3.1415926535897
 #define MAX_BUF_ADS_SIZE       66560	//65536	//8192 // 한번에 읽어들일 최대 버프 사이즈
 
 using namespace std;
