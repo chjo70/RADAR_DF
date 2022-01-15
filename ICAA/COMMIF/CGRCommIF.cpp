@@ -34,7 +34,7 @@ CGRCommIF::CGRCommIF() :
 */
 CGRCommIF::~CGRCommIF()
 {
-	bool bRtn = DeleteTimerQueueTimer(m_hTimerQueue, m_hTimer, NULL);
+	BOOL bRtn = DeleteTimerQueueTimer(m_hTimerQueue, m_hTimer, NULL);
 
 	if(bRtn)
 	{
@@ -387,7 +387,7 @@ bool CGRCommIF::ConnectADSBS(int i_iPort, const char *i_pacIP)
 }
 
 // - [이형호 송신]
-bool CGRCommIF::SendNEXSANData(int i_iSize, const void *i_pvData)
+int CGRCommIF::SendNEXSANData(int i_iSize, const void *i_pvData)
 {	
 	int iRet = NULL;
 	if ( m_hClientSocket )

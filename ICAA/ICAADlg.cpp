@@ -62,7 +62,7 @@ CICAADlg::CICAADlg(CWnd* pParent /*=NULL*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
-	m_iTotalNumOfLog = 0;
+	m_iTotalNumOfLog = 1;
 	m_bFlagLogShow = true;	
 }
 
@@ -75,6 +75,8 @@ void CICAADlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_LIST_LOG, m_LoglistCtrl);
+	DDX_Control(pDX, IDC_BTN_RADARRD_STATUS, m_CButtonRadarRDStatus);
+	DDX_Control(pDX, IDC_BTN_PDWCOL_STATUS, m_CButtonPDWColStatus);
 }
 
 BEGIN_MESSAGE_MAP(CICAADlg, CDialogEx)
@@ -122,12 +124,15 @@ BOOL CICAADlg::OnInitDialog()
 	// 최상단 메뉴 틀 제공
 	CRect rt;
 
+	EnableRadarRDStatus( FALSE );
+	EnablePDWColStatus( FALSE );
+
 	m_LoglistCtrl.GetWindowRect(&rt);
 	m_LoglistCtrl.SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);
 
-	m_LoglistCtrl.InsertColumn(0, TEXT("순번"), LVCFMT_LEFT, (int)(rt.Width()*0.2));
-	m_LoglistCtrl.InsertColumn(1, TEXT("항목"), LVCFMT_LEFT, (int)(rt.Width()*0.2));
-	m_LoglistCtrl.InsertColumn(2, TEXT("내용"), LVCFMT_LEFT, (int)(rt.Width()*0.6));
+	m_LoglistCtrl.InsertColumn(0, TEXT("순번"), LVCFMT_LEFT, (int)(rt.Width()*0.1));
+	m_LoglistCtrl.InsertColumn(1, TEXT("항목"), LVCFMT_LEFT, (int)(rt.Width()*0.1));
+	m_LoglistCtrl.InsertColumn(2, TEXT("내용"), LVCFMT_LEFT, (int)(rt.Width()*0.8));
 
 	m_DFEquipBITMngr.SetDFPoint(&m_DFTaskMngr);
 
@@ -135,7 +140,31 @@ BOOL CICAADlg::OnInitDialog()
 	//CICAAMngr::GetInstance();
 	CADSBReceivedProcessMngr::GetInstance();
 
+	Log( "시스템" , "프로그램이 시작되었습니다." );
+
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
+}
+
+void CICAADlg::EnableRadarRDStatus( BOOL bEnable )
+{
+	if( bEnable == TRUE ) {
+		m_CButtonRadarRDStatus.SetFaceColor(RGB(255,0,0),true);
+	}
+	else {
+		m_CButtonRadarRDStatus.SetFaceColor(RGB(0,0,0),true);
+	}
+
+}
+
+void CICAADlg::EnablePDWColStatus( BOOL bEnable )
+{
+	if( bEnable == TRUE ) {
+		m_CButtonPDWColStatus.SetFaceColor(RGB(255,0,0),true);
+	}
+	else {
+		m_CButtonPDWColStatus.SetFaceColor(RGB(0,0,0),true);
+	}
+
 }
 
 void CICAADlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -242,6 +271,22 @@ void CICAADlg::OnBnClickedBtnSavelog()
 	}
 }
 
+
+void CICAADlg::Log( char *pszItem, char *pszContents )
+{
+	int nItemNum = m_LoglistCtrl.GetItemCount();
+
+	char szBuffer[100];
+
+	sprintf( szBuffer, "%d" , m_iTotalNumOfLog );
+	m_LoglistCtrl.InsertItem( nItemNum, szBuffer );
+
+	m_LoglistCtrl.SetItemText( nItemNum, 1, pszItem );
+	m_LoglistCtrl.SetItemText( nItemNum, 2, pszContents );
+
+	++ m_iTotalNumOfLog;
+
+}
 
 void CICAADlg::OnBnClickedBtnClearlog()
 {

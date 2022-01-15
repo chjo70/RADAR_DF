@@ -50,7 +50,7 @@ public:
 	//bool CreateUDPDemon(CASAE_DEMONDlg* i_pDlg);
 	bool SendUDPData(int i_iSize, const void *i_pvData);
 	bool ConnectADSBS(int i_iPort, const char *i_pacIP);
-	bool SendNEXSANData(int i_iSize, const void *i_pvData);
+	int SendNEXSANData(int i_iSize, const void *i_pvData);
 	
 	bool CreateServer(int i_iPort);
 
