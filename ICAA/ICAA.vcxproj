@@ -111,6 +111,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
+    <None Include="res\196345.ico" />
     <None Include="res\ICAA.ico" />
     <None Include="res\ICAA.rc2" />
   </ItemGroup>

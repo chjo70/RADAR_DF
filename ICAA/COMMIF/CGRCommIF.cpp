@@ -546,7 +546,7 @@ void CGRCommIF::ReturnPingRst(int i_iConnectType, bool i_bRst, bool i_bSvr)
 					{
 						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_1, m_iHeartbeatPort_1 );
 						//TRACE ( "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_1, m_iHeartbeatPort_1 );
-						::SendMessage( g_DlgHandle, UWM_USER_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+						::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
 						//Log( "시스템" , "재연결 시도" );
 						Connect(m_iHeartbeatPort_1, m_acHeartbeatIP_1, CLIENT_NO_1);
 					}
@@ -554,14 +554,14 @@ void CGRCommIF::ReturnPingRst(int i_iConnectType, bool i_bRst, bool i_bSvr)
 					{
 						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_2, m_iHeartbeatPort_2 );
 						//TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_2, m_iHeartbeatPort_2);
-						::SendMessage( g_DlgHandle, UWM_USER_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+						::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
 						Connect(m_iHeartbeatPort_2, m_acHeartbeatIP_2, CLIENT_NO_2);
 					}
 					else if ( i_iConnectType == CLIENT_NO_3 && m_acHeartbeatIP_3[0] != NULL )
 					{
 						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_3, m_iHeartbeatPort_3 );
 						//TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_3, m_iHeartbeatPort_3);
-						::SendMessage( g_DlgHandle, UWM_USER_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+						::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
 						m_hCommObj.SetConnectionInfo(CLIENT_NO_3, true);
 						//Connect(m_iHeartbeatPort_3, m_acHeartbeatIP_3, CLIENT_NO_3);
 					}
@@ -569,7 +569,7 @@ void CGRCommIF::ReturnPingRst(int i_iConnectType, bool i_bRst, bool i_bSvr)
 					{
 						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_4, m_iHeartbeatPort_4 );
 						//TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_4, m_iHeartbeatPort_4);
-						::SendMessage( g_DlgHandle, UWM_USER_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+						::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
 						Connect(m_iHeartbeatPort_4, m_acHeartbeatIP_4, CLIENT_NO_4);
 					}
 					else;

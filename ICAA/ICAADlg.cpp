@@ -143,7 +143,7 @@ BOOL CICAADlg::OnInitDialog()
 
 	g_DlgHandle = GetSafeHwnd();
 
-	this->SetWindowText("ICAA_DF");
+	this->SetWindowText("레이더 방탐 소프트웨어");
 	//CICAAMngr::GetInstance();
 	CADSBReceivedProcessMngr::GetInstance();
 
@@ -286,7 +286,7 @@ void CICAADlg::Log( STR_LOGMESSAGE *pMsg )
 	sprintf( szBuffer, "%d" , m_iTotalNumOfLog );
 	m_LoglistCtrl.InsertItem( nItemNum, szBuffer );
 
-	sprintf( szBuffer, "%ㄴ" , g_stLogItemType[ pMsg->enItemType ] );
+	sprintf( szBuffer, "%s" , g_stLogItemType[ pMsg->enItemType ] );
 	m_LoglistCtrl.SetItemText( nItemNum, 1, szBuffer );
 	m_LoglistCtrl.SetItemText( nItemNum, 2, pMsg->szContents );
 
@@ -339,10 +339,12 @@ LRESULT CICAADlg::OnLOGMessage( WPARAM wParam, LPARAM lParam )
 void CICAADlg::EnableRadarRDStatus( BOOL bEnable )
 {
 	if( bEnable == TRUE ) {
-		m_CButtonRadarRDStatus.SetFaceColor(RGB(255,0,0),true);
+		m_CButtonRadarRDStatus.SetFaceColor(RGB(0,0,255),true);
+		m_CButtonRadarRDStatus.SetTextColor(RGB(255,0,0)); //글자색 변경
 	}
 	else {
-		m_CButtonRadarRDStatus.SetFaceColor(RGB(0,0,0),true);
+		m_CButtonRadarRDStatus.SetFaceColor(RGB(255,0,0),true);
+		m_CButtonRadarRDStatus.SetTextColor(RGB(255,0,0)); //글자색 변경
 	}
 
 }
@@ -350,10 +352,12 @@ void CICAADlg::EnableRadarRDStatus( BOOL bEnable )
 void CICAADlg::EnablePDWColStatus( BOOL bEnable )
 {
 	if( bEnable == TRUE ) {
-		m_CButtonPDWColStatus.SetFaceColor(RGB(255,0,0),true);
+		m_CButtonPDWColStatus.SetFaceColor(RGB(0,0,255),true);
+		m_CButtonPDWColStatus.SetTextColor(RGB(255,0,0)); //글자색 변경
 	}
 	else {
-		m_CButtonPDWColStatus.SetFaceColor(RGB(0,0,0),true);
+		m_CButtonPDWColStatus.SetFaceColor(RGB(255,0,0),true);
+		m_CButtonPDWColStatus.SetTextColor(RGB(255,0,0)); //글자색 변경
 	}
 
 }
