@@ -20,6 +20,8 @@ using namespace std;
 #endif
 
 
+char g_stLogItemType[enMAXItems][20] = { "시스템", "로그", "에러" } ;
+
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
@@ -86,6 +88,9 @@ BEGIN_MESSAGE_MAP(CICAADlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_SAVELOG, &CICAADlg::OnBnClickedBtnSavelog)
 	ON_BN_CLICKED(IDC_BTN_CLEARLOG, &CICAADlg::OnBnClickedBtnClearlog)
 	ON_BN_CLICKED(IDC_BUTTON1, &CICAADlg::OnBnClickedButton1)
+
+	ON_MESSAGE(UWM_USER_LOG_MSG, OnLOGMessage )
+	ON_MESSAGE(UWM_USER_STAT_MSG, OnStatus )
 END_MESSAGE_MAP()
 
 
@@ -136,37 +141,27 @@ BOOL CICAADlg::OnInitDialog()
 
 	m_DFEquipBITMngr.SetDFPoint(&m_DFTaskMngr);
 
+	g_DlgHandle = GetSafeHwnd();
+
 	this->SetWindowText("ICAA_DF");
 	//CICAAMngr::GetInstance();
 	CADSBReceivedProcessMngr::GetInstance();
 
-	Log( "시스템" , "프로그램이 시작되었습니다." );
+	Log( enSYSTEM , "프로그램이 시작되었습니다." );
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
-void CICAADlg::EnableRadarRDStatus( BOOL bEnable )
-{
-	if( bEnable == TRUE ) {
-		m_CButtonRadarRDStatus.SetFaceColor(RGB(255,0,0),true);
-	}
-	else {
-		m_CButtonRadarRDStatus.SetFaceColor(RGB(0,0,0),true);
-	}
-
-}
-
-void CICAADlg::EnablePDWColStatus( BOOL bEnable )
-{
-	if( bEnable == TRUE ) {
-		m_CButtonPDWColStatus.SetFaceColor(RGB(255,0,0),true);
-	}
-	else {
-		m_CButtonPDWColStatus.SetFaceColor(RGB(0,0,0),true);
-	}
-
-}
-
+/**
+ * @brief     
+ * @param     UINT nID
+ * @param     LPARAM lParam
+ * @return    void
+ * @author    조철희(churlhee.jo@lignex1.com)
+ * @version   0.0.1
+ * @date      2022/01/16 15:47:56
+ * @warning   
+ */
 void CICAADlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
 	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
@@ -272,7 +267,17 @@ void CICAADlg::OnBnClickedBtnSavelog()
 }
 
 
-void CICAADlg::Log( char *pszItem, char *pszContents )
+void CICAADlg::Log( enENUM_ITEM enItemType , char *pszContents )
+{
+	STR_LOGMESSAGE stMsg;
+
+	stMsg.enItemType = enItemType;
+	strcpy( stMsg.szContents, pszContents );
+
+	Log( & stMsg );
+}
+
+void CICAADlg::Log( STR_LOGMESSAGE *pMsg )
 {
 	int nItemNum = m_LoglistCtrl.GetItemCount();
 
@@ -281,8 +286,9 @@ void CICAADlg::Log( char *pszItem, char *pszContents )
 	sprintf( szBuffer, "%d" , m_iTotalNumOfLog );
 	m_LoglistCtrl.InsertItem( nItemNum, szBuffer );
 
-	m_LoglistCtrl.SetItemText( nItemNum, 1, pszItem );
-	m_LoglistCtrl.SetItemText( nItemNum, 2, pszContents );
+	sprintf( szBuffer, "%ㄴ" , g_stLogItemType[ pMsg->enItemType ] );
+	m_LoglistCtrl.SetItemText( nItemNum, 1, szBuffer );
+	m_LoglistCtrl.SetItemText( nItemNum, 2, pMsg->szContents );
 
 	++ m_iTotalNumOfLog;
 
@@ -314,4 +320,61 @@ void CICAADlg::OnBnClickedButton1()
 	m_DFTaskMngr.StartChannelCorrect(1);
 	//m_DFTaskMngr.SetFreqToRadarUnit(901000);
 	//m_DFTaskMngr.AlgrismInit();
+}
+
+
+LRESULT CICAADlg::OnLOGMessage( WPARAM wParam, LPARAM lParam )
+{
+	// 메시지를 받아서 처리하는 함수
+	char *pszContents = (char *) wParam;
+	enENUM_ITEM enItemType = (enENUM_ITEM ) lParam;
+
+	TRACE( pszContents );
+	Log( enItemType, pszContents );
+
+	//AfxMessageBox(msg->GetString());
+	return 0;
+}
+
+void CICAADlg::EnableRadarRDStatus( BOOL bEnable )
+{
+	if( bEnable == TRUE ) {
+		m_CButtonRadarRDStatus.SetFaceColor(RGB(255,0,0),true);
+	}
+	else {
+		m_CButtonRadarRDStatus.SetFaceColor(RGB(0,0,0),true);
+	}
+
+}
+
+void CICAADlg::EnablePDWColStatus( BOOL bEnable )
+{
+	if( bEnable == TRUE ) {
+		m_CButtonPDWColStatus.SetFaceColor(RGB(255,0,0),true);
+	}
+	else {
+		m_CButtonPDWColStatus.SetFaceColor(RGB(0,0,0),true);
+	}
+
+}
+
+LRESULT CICAADlg::OnStatus( WPARAM wParam, LPARAM lParam )
+{
+	// 메시지를 받아서 처리하는 함수
+	enENUM_STATUS_UNIT enStatusUnit = (enENUM_STATUS_UNIT ) wParam;
+	BOOL bEnable = (BOOL ) lParam;
+
+	switch( enStatusUnit ) {
+		case enRADARRD :
+			EnableRadarRDStatus( bEnable );
+			break;
+		case enPDWCOL :
+			EnablePDWColStatus( bEnable );
+			break;
+
+		default:
+			break;
+	}
+
+	return 0;
 }

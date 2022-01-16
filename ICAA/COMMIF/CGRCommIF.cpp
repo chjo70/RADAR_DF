@@ -27,6 +27,7 @@ CGRCommIF::CGRCommIF() :
 		m_hTimerQueue = CreateTimerQueue();
 		CreateTimerQueueTimer(&m_hTimer, m_hTimerQueue, (WAITORTIMERCALLBACK)GRPingTimer, this, PING_START_INTERVAL, PING_INTERVAL, 0);
 	}
+
 }
 
 /**
@@ -523,6 +524,8 @@ void CGRCommIF::ReturnPingRst(int i_iConnectType, bool i_bRst, bool i_bSvr)
 	bool bUseHeartbeat = false;
 	bUseHeartbeat = m_hCommObj.GetInfoToUseHeartbeat();	
 
+	STR_LOGMESSAGE stMsg;
+
 	if ( bUseHeartbeat != false )
 	{
 		if ( i_bRst == true ) // 연결
@@ -541,23 +544,32 @@ void CGRCommIF::ReturnPingRst(int i_iConnectType, bool i_bRst, bool i_bSvr)
 				{
 					if ( i_iConnectType == CLIENT_NO_1 && m_acHeartbeatIP_1[0] != NULL )
 					{
-						TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_1, m_iHeartbeatPort_1);
+						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_1, m_iHeartbeatPort_1 );
+						//TRACE ( "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_1, m_iHeartbeatPort_1 );
+						::SendMessage( g_DlgHandle, UWM_USER_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+						//Log( "시스템" , "재연결 시도" );
 						Connect(m_iHeartbeatPort_1, m_acHeartbeatIP_1, CLIENT_NO_1);
 					}
 					else if ( i_iConnectType == CLIENT_NO_2 && m_acHeartbeatIP_2[0] != NULL )
 					{
-						TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_2, m_iHeartbeatPort_2);
+						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_2, m_iHeartbeatPort_2 );
+						//TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_2, m_iHeartbeatPort_2);
+						::SendMessage( g_DlgHandle, UWM_USER_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
 						Connect(m_iHeartbeatPort_2, m_acHeartbeatIP_2, CLIENT_NO_2);
 					}
 					else if ( i_iConnectType == CLIENT_NO_3 && m_acHeartbeatIP_3[0] != NULL )
 					{
-						TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_3, m_iHeartbeatPort_3);
+						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_3, m_iHeartbeatPort_3 );
+						//TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_3, m_iHeartbeatPort_3);
+						::SendMessage( g_DlgHandle, UWM_USER_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
 						m_hCommObj.SetConnectionInfo(CLIENT_NO_3, true);
 						//Connect(m_iHeartbeatPort_3, m_acHeartbeatIP_3, CLIENT_NO_3);
 					}
 					else if  ( i_iConnectType == CLIENT_NO_4 && m_acHeartbeatIP_4[0] != NULL )
 					{
-						TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_4, m_iHeartbeatPort_4);
+						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_4, m_iHeartbeatPort_4 );
+						//TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_4, m_iHeartbeatPort_4);
+						::SendMessage( g_DlgHandle, UWM_USER_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
 						Connect(m_iHeartbeatPort_4, m_acHeartbeatIP_4, CLIENT_NO_4);
 					}
 					else;
@@ -631,3 +643,4 @@ bool CGRCommIF::GetRadarEquipConnStatus()
 {
 	return m_hCommObj.GetRadarConnStatus();
 }
+

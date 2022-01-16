@@ -57,3 +57,30 @@
 #endif
 
 
+#define UWM_USER_LOG_MSG	(WM_USER + 10) // 사용자 정의 메세지 선언
+#define UWM_USER_STAT_MSG	(WM_USER + 11) // 사용자 정의 메세지 선언
+
+typedef enum {
+	enSYSTEM=0,
+	enLOG,
+	enERROR,
+
+	enMAXItems
+
+} enENUM_ITEM;
+
+typedef enum {
+	enRADARRD=0,
+	enPDWCOL,
+
+	enMAXStatusUNIT
+
+} enENUM_STATUS_UNIT;
+
+typedef struct {
+	enENUM_ITEM enItemType;
+	char szContents[100];
+
+} STR_LOGMESSAGE ;
+
+extern HWND g_DlgHandle;

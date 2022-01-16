@@ -21,7 +21,8 @@ public:
 
 	void EnableRadarRDStatus( BOOL bEnable );
 	void EnablePDWColStatus( BOOL bEnable );
-	void Log( char *pszItem, char *pszContents );
+	void Log( STR_LOGMESSAGE *pMsg );
+	void Log( enENUM_ITEM enItemType , char *pszContents );
 
 // 대화 상자 데이터입니다.
 	enum { IDD = IDD_ICAA_DIALOG };
@@ -45,6 +46,9 @@ public:
 public:
 	int m_iTotalNumOfLog;
 	bool m_bFlagLogShow;
+
+	afx_msg LRESULT OnLOGMessage( WPARAM wParam, LPARAM lParam );
+	afx_msg LRESULT OnStatus( WPARAM wParam, LPARAM lParam );
 
 	afx_msg void OnBnClickedBtnSavelog();
 	afx_msg void OnBnClickedBtnClearlog();

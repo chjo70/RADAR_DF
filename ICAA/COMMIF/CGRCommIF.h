@@ -85,6 +85,7 @@ public:
 	bool GetPDWEquipConnStatus();
 	bool GetRadarEquipConnStatus();
 
+
 // Attribute
 private:
 	char m_acHeartbeatIP_1[MAX_IP_STR_BYTE];
