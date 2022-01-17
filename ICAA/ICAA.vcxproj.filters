@@ -25,7 +25,7 @@
     <Filter Include="ThreadTask">
       <UniqueIdentifier>{0f1798fd-ab2b-4b88-ae40-359e3437c9e6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ThreadTask\RadarDirAlgorithm">
+    <Filter Include="RadarDirAlgorithm">
       <UniqueIdentifier>{182982a6-154f-4209-99b1-ab71adbaa2dd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -129,11 +129,8 @@
     <ClInclude Include="ThreadTask\DFEquipBITMngr.h">
       <Filter>ThreadTask</Filter>
     </ClInclude>
-    <ClInclude Include="RadarAnlAlgorithm.h">
-      <Filter>ThreadTask\RadarDirAlgorithm</Filter>
-    </ClInclude>
     <ClInclude Include="RadarDirAlgorithm.h">
-      <Filter>ThreadTask\RadarDirAlgorithm</Filter>
+      <Filter>RadarDirAlgorithm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
