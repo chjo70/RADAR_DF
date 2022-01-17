@@ -326,9 +326,10 @@ void CICAADlg::OnBnClickedButton1()
 LRESULT CICAADlg::OnLOGMessage( WPARAM wParam, LPARAM lParam )
 {
 	// 메시지를 받아서 처리하는 함수
-	char *pszContents = (char *) wParam;
-	enENUM_ITEM enItemType = (enENUM_ITEM ) lParam;
+	enENUM_ITEM enItemType = (enENUM_ITEM ) wParam;
+	char *pszContents = (char *) lParam;
 
+	TRACE( "\n" );
 	TRACE( pszContents );
 	Log( enItemType, pszContents );
 

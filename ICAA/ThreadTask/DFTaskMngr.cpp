@@ -389,6 +389,7 @@ void CDFTaskMngr::Receive(unsigned int i_uiOpcode, unsigned short i_usSize, unsi
 
 void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 {
+	STR_LOGMESSAGE stMsg;
 
 	// OPCODE별로 경우를 나열하여 처리하는 로직 구현 필요
 	// 하단에 구현
@@ -494,7 +495,10 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 	case OPCODE_BD_TF_REQSTARTACQ: //수집과제 시작(분석->방탐)
 		{
-			TRACE("[수신]레이더분석-레이더방탐 수집시작 요구\n");
+			//TRACE("[수신]레이더분석-레이더방탐 수집시작 요구\n");
+
+			sprintf( stMsg.szContents, "[수신]레이더분석-레이더방탐 수집시작 요구" );
+			::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enLOG, (LPARAM) & stMsg.szContents[0] );
 
 			STxAcqStartRequest stAcqStartReq;
 			memcpy(&stAcqStartReq, i_stMsg.buf, i_stMsg.usMSize);
@@ -1178,7 +1182,10 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				SRxLOBData *pLOBData=RadarDirAlgotirhm::RadarDirAlgotirhm::GetLOBData();
 				///////////////////////////////////////////////////////////////////////////////
 
-				TRACE("**************[송신]레이더방탐-레이더분석 LOB 전송 개수%d============\n", nCoLOB);
+				//TRACE("**************[송신]레이더방탐-레이더분석 LOB 전송 개수%d============\n", nCoLOB);
+
+				sprintf( stMsg.szContents, "[송신]레이더방탐-레이더분석 LOB 전송 개수 : %d", nCoLOB );
+				::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enLOG, (LPARAM) & stMsg.szContents[0] );
 
 				/*if(nCoLOB == 0)
 				{

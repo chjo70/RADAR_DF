@@ -544,7 +544,8 @@ void CGRCommIF::ReturnPingRst(int i_iConnectType, bool i_bRst, bool i_bSvr)
 				{
 					if ( i_iConnectType == CLIENT_NO_1 && m_acHeartbeatIP_1[0] != NULL )
 					{
-						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_1, m_iHeartbeatPort_1 );
+						
+						sprintf( stMsg.szContents, "[IP : %s(레이더 분석), PORT : %d,  재연결시도]" , m_acHeartbeatIP_1, m_iHeartbeatPort_1 );
 						//TRACE ( "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_1, m_iHeartbeatPort_1 );
 						::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
 						//Log( "시스템" , "재연결 시도" );
@@ -552,9 +553,11 @@ void CGRCommIF::ReturnPingRst(int i_iConnectType, bool i_bRst, bool i_bSvr)
 					}
 					else if ( i_iConnectType == CLIENT_NO_2 && m_acHeartbeatIP_2[0] != NULL )
 					{
-						sprintf( stMsg.szContents, "[IP : %s, PORT : %d,  재연결시도]" , m_acHeartbeatIP_2, m_iHeartbeatPort_2 );
+						sprintf( stMsg.szContents, "[IP : %s(PDW발생판), PORT : %d,  재연결시도]" , m_acHeartbeatIP_2, m_iHeartbeatPort_2 );
 						//TRACE ("[IP : %s, PORT : %d,  재연결시도]\n", m_acHeartbeatIP_2, m_iHeartbeatPort_2);
 						::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+
+						::SendMessage( g_DlgHandle, UWM_USER_STAT_MSG, (WPARAM) enPDWCOL, (LPARAM) FALSE );
 						Connect(m_iHeartbeatPort_2, m_acHeartbeatIP_2, CLIENT_NO_2);
 					}
 					else if ( i_iConnectType == CLIENT_NO_3 && m_acHeartbeatIP_3[0] != NULL )

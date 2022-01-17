@@ -1150,6 +1150,8 @@ UINT CGRCommObj::TcpClientDF_1ThreadFunc(LPVOID arg) // TODO : thread 함수 class
 	int iLength = NULL;
 	bool bConnected = true;
 
+	STR_LOGMESSAGE stMsg;
+
 	CGRCommObj* cGRCommObj = &CGRCommObj::GetInstance();
 
 	memset(cGRCommObj->m_aucTcpClientRecvBuf_1, NULL, MAX_BUF_SIZE);
@@ -1192,7 +1194,12 @@ UINT CGRCommObj::TcpClientDF_1ThreadFunc(LPVOID arg) // TODO : thread 함수 class
 							cGRCommObj->SetConnectionInfo(CLIENT_NO_1, false);
 
 							TRACE("[### TCP CLIENT RADAR_DF1 THREAD CLOSE ####]\n");
-							TRACE("레이더 분석 #1번이 끊어졌습니다." );						
+							TRACE("레이더 분석 #1번이 끊어졌습니다." );			
+
+							sprintf( stMsg.szContents, "레이더 분석 #1번이 끊어졌습니다." );
+							::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+
+							::SendMessage( g_DlgHandle, UWM_USER_STAT_MSG, (WPARAM) enRADARRD, (LPARAM) FALSE );
 							bConnected = false;
 						}
 						else
@@ -1342,6 +1349,8 @@ UINT CGRCommObj::TcpClientDF_1ThreadFunc(LPVOID arg) // TODO : thread 함수 class
 	int iLength = NULL;
 	bool bConnected = true;
 
+	STR_LOGMESSAGE stMsg;
+
 	CGRCommObj* cGRCommObj = &CGRCommObj::GetInstance();
 
 	memset(cGRCommObj->m_aucTcpClientRecvBuf_2, NULL, MAX_BUF_SIZE);
@@ -1384,7 +1393,11 @@ UINT CGRCommObj::TcpClientDF_1ThreadFunc(LPVOID arg) // TODO : thread 함수 class
 							cGRCommObj->SetConnectionInfo(CLIENT_NO_2, false);
 
 							TRACE("[### TCP CLIENT PDW_2 THREAD CLOSE ####]\n");
-							TRACE("PDW발생판 CLIENT #2번이 끊어졌습니다.\n");
+							//TRACE("PDW발생판 CLIENT #2번이 끊어졌습니다.\n");
+							sprintf( stMsg.szContents, "PDW발생판 CLIENT #2번이 끊어졌습니다." );
+							::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+
+							::SendMessage( g_DlgHandle, UWM_USER_STAT_MSG, (WPARAM) enPDWCOL, (LPARAM) FALSE );
 							bConnected = false;
 						}
 						else
@@ -3262,8 +3275,24 @@ void CGRCommObj::SetConnectionInfo(int i_iConnectionType, bool i_bConnection)
 	GetPrivateProfileString(strGrpName, ("IP"), NULL, readBuf, _countof(readBuf), envini_path);				
 
 	if ( i_bConnection == true )
-	{		
+	{
+		STR_LOGMESSAGE stMsg;
+
+		if( i_iConnectionType == CLIENT_NO_2 ) {
+			sprintf( stMsg.szContents, "[PDW 발생판 PORT : %d,  연결성공]", iPort );
+			::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+
+			::SendMessage( g_DlgHandle, UWM_USER_STAT_MSG, (WPARAM) enPDWCOL, (LPARAM) TRUE );
+		}
+		else if( i_iConnectionType == CLIENT_NO_1 ) {
+			sprintf( stMsg.szContents, "[레이더 분석 PORT : %d,  연결성공]", iPort );
+			::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSYSTEM, (LPARAM) & stMsg.szContents[0] );
+
+			::SendMessage( g_DlgHandle, UWM_USER_STAT_MSG, (WPARAM) enRADARRD, (LPARAM) TRUE );
+		}
+
 		TRACE ("[PORT : %d,  연결성공]\n", iPort);
+		
 	}
 	else
 	{
