@@ -290,6 +290,8 @@ void CICAADlg::Log( STR_LOGMESSAGE *pMsg )
 	m_LoglistCtrl.SetItemText( nItemNum, 1, szBuffer );
 	m_LoglistCtrl.SetItemText( nItemNum, 2, pMsg->szContents );
 
+	m_LoglistCtrl.SendMessage( WM_VSCROLL, SB_BOTTOM );
+
 	++ m_iTotalNumOfLog;
 
 }
@@ -340,10 +342,12 @@ LRESULT CICAADlg::OnLOGMessage( WPARAM wParam, LPARAM lParam )
 void CICAADlg::EnableRadarRDStatus( BOOL bEnable )
 {
 	if( bEnable == TRUE ) {
+		m_CButtonRadarRDStatus.SetWindowTextA( "레이더 분석 연결" );
 		m_CButtonRadarRDStatus.SetFaceColor(RGB(0,0,255),true);
 		m_CButtonRadarRDStatus.SetTextColor(RGB(255,0,0)); //글자색 변경
 	}
 	else {
+		m_CButtonRadarRDStatus.SetWindowTextA( "레이더 분석 미연결" );
 		m_CButtonRadarRDStatus.SetFaceColor(RGB(255,0,0),true);
 		m_CButtonRadarRDStatus.SetTextColor(RGB(255,0,0)); //글자색 변경
 	}
@@ -353,10 +357,12 @@ void CICAADlg::EnableRadarRDStatus( BOOL bEnable )
 void CICAADlg::EnablePDWColStatus( BOOL bEnable )
 {
 	if( bEnable == TRUE ) {
+		m_CButtonPDWColStatus.SetWindowTextA( "PDW수신판 연결" );
 		m_CButtonPDWColStatus.SetFaceColor(RGB(0,0,255),true);
 		m_CButtonPDWColStatus.SetTextColor(RGB(255,0,0)); //글자색 변경
 	}
 	else {
+		m_CButtonPDWColStatus.SetWindowTextA( "PDW수신판 미연결" );
 		m_CButtonPDWColStatus.SetFaceColor(RGB(255,0,0),true);
 		m_CButtonPDWColStatus.SetTextColor(RGB(255,0,0)); //글자색 변경
 	}

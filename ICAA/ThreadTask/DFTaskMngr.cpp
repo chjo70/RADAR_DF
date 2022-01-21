@@ -95,6 +95,11 @@ void CALLBACK ReqTaskRetryTimer(PVOID lpParam, BOOLEAN TimerOrWaitFired);
 #define LOCAL_DATA_DIRECTORY			"C:\\Files\\IQDATA"
 #define	IQ_EXT							"EIQ"
 
+
+char g_szAetSignalType[7][3] = { "CW" , "NP" , "CW" , "FM" , "CF", "SH", "AL" };
+char g_szAetFreqType[7][3] = { "F_" , "HP" , "RA" , "PA", "UK", "IF" };
+char g_szAetPriType[7][3] = { "UK", "ST" , "JT", "DW" , "SG" , "PJ", "IP" } ;
+
 CDFTaskMngr::CDFTaskMngr()
 :m_hCommIF_DFTaskMngr(m_hCommIF)
 {
@@ -1173,6 +1178,8 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 			}
 			else if(m_iMode == MODE_CRT_TYPE)
 			{
+				int i;
+
 				///////////////////////////////////////////////////////////////////////////////
 				//조철희 수석님의 PDW데이타에서 LOB 추출 알고리즘 호출			
 				RadarDirAlgotirhm::RadarDirAlgotirhm::Start( & stPDWDataToAOA );
@@ -1186,6 +1193,13 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 				sprintf( stMsg.szContents, "[송신]레이더방탐-레이더분석 LOB 전송 개수 : %d", nCoLOB );
 				::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enLOG, (LPARAM) & stMsg.szContents[0] );
+
+				SRxLOBData *ppLOBData=pLOBData;
+				for( i=0 ; i < nCoLOB ; ++i ) {
+					sprintf( stMsg.szContents, "  [#%d] %s %4.1f %s(%.3f, %.3f) %s(%.1f,%.1f), %2d", i+1, g_szAetSignalType[ppLOBData->iSignalType], ppLOBData->fDOAMean, g_szAetFreqType[ppLOBData->iFreqType], ppLOBData->fFreqMin, ppLOBData->fFreqMax, g_szAetPriType[ppLOBData->iPRIType], ppLOBData->fPRIMin, ppLOBData->fPRIMax, ppLOBData->iPRIPositionCount  );
+					::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enLOG, (LPARAM) & stMsg.szContents[0] );
+					++ ppLOBData;
+				}
 
 				/*if(nCoLOB == 0)
 				{
