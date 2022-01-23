@@ -12,6 +12,8 @@
 
 // CICAADlg 대화 상자
 
+#define     MAX_LOGCOUNT        (100)
+
 class CICAADlg : public CDialogEx
 {
 // 생성입니다.

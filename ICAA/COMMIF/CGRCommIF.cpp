@@ -345,7 +345,7 @@ bool CGRCommIF::SendUDPData(int i_iSize, const void *i_pvData)
 
 bool CGRCommIF::ConnectADSBS(int i_iPort, const char *i_pacIP)
 {
-	int iRet;
+	//int iRet;
 	int	sizeOfLanBuf;
 	struct linger	LINGER;
 
@@ -357,7 +357,7 @@ bool CGRCommIF::ConnectADSBS(int i_iPort, const char *i_pacIP)
 	if(INVALID_SOCKET == m_hClientSocket)
 	{
 		TRACE("TCP_CLIENT_ERROR_SOCKET\n"); 
-		return TCP_CLIENT_ERROR_SOCKET;
+		return false; // TCP_CLIENT_ERROR_SOCKET;
 	}
 
 	LINGER.l_onoff = TRUE;
@@ -377,7 +377,7 @@ bool CGRCommIF::ConnectADSBS(int i_iPort, const char *i_pacIP)
 	{
 		closesocket(m_hClientSocket);
 		TRACE("TCP_CLIENT_ERROR_CONNECT\n"); 
-		return TCP_CLIENT_ERROR_CONNECT;
+		return false; // TCP_CLIENT_ERROR_CONNECT;
 	}
 	
 	CGRCommObj::GetInstance().StartTcpClientADSBThreadFunc(&m_hClientSocket);

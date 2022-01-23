@@ -20,8 +20,6 @@ using namespace std;
 #endif
 
 
-char g_stLogItemType[enMAXItems][20] = { "시스템", "로그", "에러" } ;
-
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
@@ -267,6 +265,17 @@ void CICAADlg::OnBnClickedBtnSavelog()
 }
 
 
+/**
+ * @brief     Log
+ * @param     enENUM_ITEM enItemType
+ * @param     char * pszContents
+ * @return    void
+ * @exception
+ * @author    조철희 (churlhee.jo@lignex1.com)
+ * @version   0.0.1
+ * @date      2022-01-23, 13:13
+ * @warning
+ */
 void CICAADlg::Log( enENUM_ITEM enItemType , char *pszContents )
 {
 	STR_LOGMESSAGE stMsg;
@@ -277,11 +286,26 @@ void CICAADlg::Log( enENUM_ITEM enItemType , char *pszContents )
 	Log( & stMsg );
 }
 
+/**
+ * @brief     Log
+ * @param     STR_LOGMESSAGE * pMsg
+ * @return    void
+ * @exception
+ * @author    조철희 (churlhee.jo@lignex1.com)
+ * @version   0.0.1
+ * @date      2022-01-23, 13:13
+ * @warning
+ */
 void CICAADlg::Log( STR_LOGMESSAGE *pMsg )
 {
 	int nItemNum = m_LoglistCtrl.GetItemCount();
 
 	char szBuffer[100];
+
+    if( nItemNum > MAX_LOGCOUNT ) {
+        m_LoglistCtrl.DeleteAllItems();
+        nItemNum = m_LoglistCtrl.GetItemCount();
+    }
 
 	sprintf( szBuffer, "%d" , m_iTotalNumOfLog );
 	m_LoglistCtrl.InsertItem( nItemNum, szBuffer );
@@ -296,6 +320,15 @@ void CICAADlg::Log( STR_LOGMESSAGE *pMsg )
 
 }
 
+/**
+ * @brief     OnBnClickedBtnClearlog
+ * @return    void
+ * @exception
+ * @author    조철희 (churlhee.jo@lignex1.com)
+ * @version   0.0.1
+ * @date      2022-01-23, 13:13
+ * @warning
+ */
 void CICAADlg::OnBnClickedBtnClearlog()
 {
 	int iResult = AfxMessageBox("로그를 정말로 지우시겠습니까?", MB_OKCANCEL);
@@ -315,6 +348,15 @@ void CICAADlg::OnBnClickedBtnClearlog()
 }
 
 
+/**
+ * @brief     OnBnClickedButton1
+ * @return    void
+ * @exception
+ * @author    조철희 (churlhee.jo@lignex1.com)
+ * @version   0.0.1
+ * @date      2022-01-23, 13:13
+ * @warning
+ */
 void CICAADlg::OnBnClickedButton1()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
@@ -325,6 +367,17 @@ void CICAADlg::OnBnClickedButton1()
 }
 
 
+/**
+ * @brief     OnLOGMessage
+ * @param     WPARAM wParam
+ * @param     LPARAM lParam
+ * @return    LRESULT
+ * @exception
+ * @author    조철희 (churlhee.jo@lignex1.com)
+ * @version   0.0.1
+ * @date      2022-01-23, 13:11
+ * @warning
+ */
 LRESULT CICAADlg::OnLOGMessage( WPARAM wParam, LPARAM lParam )
 {
 	// 메시지를 받아서 처리하는 함수
@@ -339,6 +392,16 @@ LRESULT CICAADlg::OnLOGMessage( WPARAM wParam, LPARAM lParam )
 	return 0;
 }
 
+/**
+ * @brief     EnableRadarRDStatus
+ * @param     BOOL bEnable
+ * @return    void
+ * @exception
+ * @author    조철희 (churlhee.jo@lignex1.com)
+ * @version   0.0.1
+ * @date      2022-01-23, 13:11
+ * @warning
+ */
 void CICAADlg::EnableRadarRDStatus( BOOL bEnable )
 {
 	if( bEnable == TRUE ) {
@@ -354,6 +417,16 @@ void CICAADlg::EnableRadarRDStatus( BOOL bEnable )
 
 }
 
+/**
+ * @brief     EnablePDWColStatus
+ * @param     BOOL bEnable
+ * @return    void
+ * @exception
+ * @author    조철희 (churlhee.jo@lignex1.com)
+ * @version   0.0.1
+ * @date      2022-01-23, 13:11
+ * @warning
+ */
 void CICAADlg::EnablePDWColStatus( BOOL bEnable )
 {
 	if( bEnable == TRUE ) {
@@ -369,6 +442,17 @@ void CICAADlg::EnablePDWColStatus( BOOL bEnable )
 
 }
 
+/**
+ * @brief     OnStatus
+ * @param     WPARAM wParam
+ * @param     LPARAM lParam
+ * @return    LRESULT
+ * @exception
+ * @author    조철희 (churlhee.jo@lignex1.com)
+ * @version   0.0.1
+ * @date      2022-01-23, 13:11
+ * @warning
+ */
 LRESULT CICAADlg::OnStatus( WPARAM wParam, LPARAM lParam )
 {
 	// 메시지를 받아서 처리하는 함수

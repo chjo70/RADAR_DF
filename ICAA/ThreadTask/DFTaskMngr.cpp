@@ -435,7 +435,10 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 		break;
 	case OPCODE_BD_TF_REQACQTASK: //수집과제 요구 (분석->방탐)
 		{
-			TRACE("[수신]레이더분석-레이더방탐 수집 과제 요구\n");
+			//TRACE("[수신]레이더분석-레이더방탐 수집 과제 요구\n");
+            sprintf( stMsg.szContents, "레이더분석-레이더방탐 수집 과제 요구" );
+            ::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enRECV, (LPARAM) & stMsg.szContents[0] );
+
 			//수집과제 수신
 			m_listTaskData.clear();
 			//수집과제 수신 결과 전송 (방탐->분석)
@@ -443,7 +446,9 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 			if(bRtnSend == true)
 			{
-				TRACE("[송신]레이더방탐-레이더분석 수집과제 수진결과\n");
+				//TRACE("[송신]레이더방탐-레이더분석 수집과제 수진결과\n");
+                sprintf( stMsg.szContents, "레이더방탐-레이더분석 수집과제 수집결과" );
+                ::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND, (LPARAM) & stMsg.szContents[0] );
 			}
 			else
 			{
@@ -458,7 +463,9 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 			ProcessNextTaskMsg(i_stMsg.buf, m_bIsTaskStop);
 
-			TRACE("[수신]레이더분석-레이더방탐 수집 다음 과제 요구\n");			
+			//TRACE("[수신]레이더분석-레이더방탐 수집 다음 과제 요구\n");	
+            sprintf( stMsg.szContents, "레이더분석-레이더방탐 수집 다음 과제 요구" );
+            ::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enRECV, (LPARAM) & stMsg.szContents[0] );
 		}
 		break;
 
@@ -501,9 +508,8 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 	case OPCODE_BD_TF_REQSTARTACQ: //수집과제 시작(분석->방탐)
 		{
 			//TRACE("[수신]레이더분석-레이더방탐 수집시작 요구\n");
-
-			sprintf( stMsg.szContents, "[수신]레이더분석-레이더방탐 수집시작 요구" );
-			::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enLOG, (LPARAM) & stMsg.szContents[0] );
+			sprintf( stMsg.szContents, "레이더분석-레이더방탐 수집시작 요구" );
+			::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enRECV, (LPARAM) & stMsg.szContents[0] );
 
 			STxAcqStartRequest stAcqStartReq;
 			memcpy(&stAcqStartReq, i_stMsg.buf, i_stMsg.usMSize);
@@ -586,11 +592,15 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 					if(bRtnSend == true)
 					{
-						TRACE("[송신]레이더방탐-레이더분석 수집시작 결과\n");
+						//TRACE("[송신]레이더방탐-레이더분석 수집시작 결과\n");
+                        sprintf( stMsg.szContents, "레이더방탐-레이더분석 수집시작 결과" );
+                        ::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND, (LPARAM) & stMsg.szContents[0] );
 					}
 					else
 					{
-						TRACE("[송신 실패]레이더방탐-레이더분석 수집시작 결과\n");
+						//TRACE("[송신 실패]레이더방탐-레이더분석 수집시작 결과\n");
+                        sprintf( stMsg.szContents, "레이더방탐-레이더분석 수집시작 결과" );
+                        ::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND, (LPARAM) & stMsg.szContents[0] );
 					}
 				}
 			}
@@ -599,7 +609,9 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 		case OPCODE_BD_TF_REQCHCALIB: //채널보정
 		{
-			TRACE("[수신]레이더분석-레이더방탐 채널 보정 요구\n");
+			//TRACE("[수신]레이더분석-레이더방탐 채널 보정 요구\n");
+            sprintf( stMsg.szContents, "레이더분석-레이더방탐 채널 보정 요구" );
+            ::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enRECV, (LPARAM) & stMsg.szContents[0] );
 
 			m_iMode = MODE_CH_TYPE;
 
@@ -647,11 +659,16 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 		
 			if(bRtnSend == true)
 			{
-				TRACE("[송신]레이더방탐-레이더분석 채널 진행 상태\n");
+				//TRACE("[송신]레이더방탐-레이더분석 채널 진행 상태\n");
+                sprintf( stMsg.szContents, "레이더방탐-레이더분석 채널 진행 상태" );
+                ::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND, (LPARAM) & stMsg.szContents[0] );
+                
 			}
 			else
 			{
-				TRACE("[송신 실패]레이더방탐-레이더분석 채널 진행 상태\n");
+				//TRACE("[송신 실패]레이더방탐-레이더분석 채널 진행 상태\n");
+                sprintf( stMsg.szContents, "레이더방탐-레이더분석 채널 진행 상태" );
+                ::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND_FAIL, (LPARAM) & stMsg.szContents[0] );
 			}			
 		}
 		break;
@@ -1192,12 +1209,12 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				//TRACE("**************[송신]레이더방탐-레이더분석 LOB 전송 개수%d============\n", nCoLOB);
 
 				sprintf( stMsg.szContents, "[송신]레이더방탐-레이더분석 LOB 전송 개수 : %d", nCoLOB );
-				::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enLOG, (LPARAM) & stMsg.szContents[0] );
+				::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND, (LPARAM) & stMsg.szContents[0] );
 
 				SRxLOBData *ppLOBData=pLOBData;
 				for( i=0 ; i < nCoLOB ; ++i ) {
-					sprintf( stMsg.szContents, "  [#%d] %s %4.1f %s(%.3f, %.3f) %s(%.1f,%.1f), %2d", i+1, g_szAetSignalType[ppLOBData->iSignalType], ppLOBData->fDOAMean, g_szAetFreqType[ppLOBData->iFreqType], ppLOBData->fFreqMin, ppLOBData->fFreqMax, g_szAetPriType[ppLOBData->iPRIType], ppLOBData->fPRIMin, ppLOBData->fPRIMax, ppLOBData->iPRIPositionCount  );
-					::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enLOG, (LPARAM) & stMsg.szContents[0] );
+					sprintf( stMsg.szContents, "  [#%d] %s %4.1f %s(%.3f, %.3f) %s(%.1f,%.1f), %2d (%.1f,%.1f)", i+1, g_szAetSignalType[ppLOBData->iSignalType], ppLOBData->fDOAMean, g_szAetFreqType[ppLOBData->iFreqType], ppLOBData->fFreqMin, ppLOBData->fFreqMax, g_szAetPriType[ppLOBData->iPRIType], ppLOBData->fPRIMin, ppLOBData->fPRIMax, ppLOBData->iPRIPositionCount, ppLOBData->fPAMin, ppLOBData->fPAMax );
+					::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND, (LPARAM) & stMsg.szContents[0] );
 					++ ppLOBData;
 				}
 

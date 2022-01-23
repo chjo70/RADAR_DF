@@ -62,12 +62,20 @@
 
 typedef enum {
 	enSYSTEM=0,
+
+	enSEND,
+    enSEND_FAIL,
+    enRECV,
+    enRECV_FAIL,
+
 	enLOG,
 	enERROR,
 
 	enMAXItems
 
 } enENUM_ITEM;
+
+static char g_stLogItemType[enMAXItems][20] = { "시스템", "송신", "송신실패", "수신", "수신실패", "로그", "에러" } ;
 
 typedef enum {
 	enRADARRD=0,
