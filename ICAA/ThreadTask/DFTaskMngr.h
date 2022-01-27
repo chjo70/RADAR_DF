@@ -155,6 +155,8 @@ public:
 	//레이더분석 데몬에 전송
 	void SendToRadarAnlys(int i_opCode, int i_cmd);
 
+	int gettimeofday(struct timeval * tp, struct timezone * tzp);
+
 	void testTask();
 	CString GetModulePath();
 	void AlgrismInit();
@@ -167,4 +169,5 @@ public:
 
 	//test
 	bool m_bTurnButten;
+
 };

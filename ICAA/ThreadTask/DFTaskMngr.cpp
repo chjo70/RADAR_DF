@@ -3,7 +3,7 @@
 #include "..\MsgQueueThread.h"
 #include "..\ThreadTask/DFMsgDefnt.h"
 
-
+#include <stdint.h>
 
 
 
@@ -989,6 +989,13 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 			stPDWDataToAOA.x.el.iCollectorID = stPDWData.iCollectorID;			// 1, 2, 3 중에 하나이어야 한다. (수집소)			
 			stPDWDataToAOA.x.el.iIsStorePDW = 1;
 
+
+			struct timeval time_spec; 
+			
+			gettimeofday( & time_spec, NULL );
+			stPDWDataToAOA.tColTime = time_spec.tv_sec;
+			stPDWDataToAOA.uiColTimeMs = ( time_spec.tv_usec / 1000 ) % 1000;
+
 			/* data 확인 필요 */
 			if(m_stCurTaskData.uiNBDRBandWidth == 1)
 				stPDWDataToAOA.x.el.enBandWidth = en50MHZ_BW;
@@ -1208,7 +1215,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 				//TRACE("**************[송신]레이더방탐-레이더분석 LOB 전송 개수%d============\n", nCoLOB);
 
-				sprintf( stMsg.szContents, "[송신]레이더방탐-레이더분석 LOB 전송 개수 : %d", nCoLOB );
+				sprintf( stMsg.szContents, "레이더방탐-레이더분석 LOB 전송/PDW 개수 : %d, %d", nCoLOB, stPDWDataToAOA.uiTotalPDW );
 				::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND, (LPARAM) & stMsg.szContents[0] );
 
 				SRxLOBData *ppLOBData=pLOBData;
@@ -2702,4 +2709,27 @@ BOOL CDFTaskMngr::CreateDir( char *pPath )
 	bRet = CreateDirectory( dirName, NULL );
 
 	return bRet;
+}
+
+
+int CDFTaskMngr::gettimeofday(struct timeval * tp, struct timezone * tzp)
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970 
+	static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime( &system_time );
+	SystemTimeToFileTime( &system_time, &file_time );
+	time =  ((uint64_t)file_time.dwLowDateTime )      ;
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
+	return 0;
+
 }
