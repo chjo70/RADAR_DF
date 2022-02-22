@@ -971,36 +971,38 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 		case OPCODE_DP_TF_RSTPDW: //PDW 데이터 결과
 		{
-			RX_STR_PDWDATA stPDWData;
+			RX_STR_PDWDATA stRXPDWData;
 			TRACE("recv buf size %d\n", i_stMsg.usMSize);
-			memcpy(&stPDWData, i_stMsg.buf, i_stMsg.usMSize);			
+			memcpy(&stRXPDWData, i_stMsg.buf, i_stMsg.usMSize);			
 
 			PDW_DATA *pPDW;		
-			STR_PDWDATA stPDWDataToAOA;
-			_PDW *pPDWToAOA;
+			STR_PDWDATA stPDWData;
 
-			int nCnt = stPDWData.count;
-			pPDW = stPDWData.stPDW;
-			pPDWToAOA = stPDWDataToAOA.stPDW;
+            stPDWData.pstPDW = ( _PDW * ) malloc( sizeof(_PDW) * 10000 );
+
+			_PDW *pPDWData;
+
+			int nCnt = stRXPDWData.count;
+			pPDW = stRXPDWData.stPDW;
+			pPDWData = & stPDWData.pstPDW[0];
 
 			//////////////LOB데이터 생성
-			memcpy(stPDWDataToAOA.x.el.aucTaskID, stPDWData.aucTaskID, sizeof(stPDWData.aucTaskID));
+			memcpy(stPDWData.x.el.aucTaskID, stRXPDWData.aucTaskID, sizeof(stRXPDWData.aucTaskID));
 			//stPDWDataToAOA.iIsStorePDW = stPDWData.stPDW;			// 0 또는 1, PDW 저장되었으면 1로 설정함.
-			stPDWDataToAOA.x.el.iCollectorID = stPDWData.iCollectorID;			// 1, 2, 3 중에 하나이어야 한다. (수집소)			
-			stPDWDataToAOA.x.el.iIsStorePDW = 1;
+			stPDWData.x.el.iCollectorID = stRXPDWData.iCollectorID;			// 1, 2, 3 중에 하나이어야 한다. (수집소)			
+			stPDWData.x.el.iIsStorePDW = 1;
 
 
 			struct timeval time_spec; 
 			
 			gettimeofday( & time_spec, NULL );
-			stPDWDataToAOA.tColTime = time_spec.tv_sec;
-			stPDWDataToAOA.uiColTimeMs = ( time_spec.tv_usec / 1000 ) % 1000;
+			stPDWData.SetColTime( time_spec.tv_sec, ( time_spec.tv_usec / 1000 ) % 1000 );
 
 			/* data 확인 필요 */
 			if(m_stCurTaskData.uiNBDRBandWidth == 1)
-				stPDWDataToAOA.x.el.enBandWidth = en50MHZ_BW;
+				stPDWData.x.el.enBandWidth = en50MHZ_BW;
 			else
-				stPDWDataToAOA.x.el.enBandWidth = en5MHZ_BW;
+				stPDWData.x.el.enBandWidth = en5MHZ_BW;
 			//////////////LOB데이터 생성
 
 			int Freq, freqLOB;
@@ -1023,7 +1025,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				else
 				{
 					//stDensityData.fDensity = (((nCnt - 3) / (m_stCurTaskData.uiAcquisitionTime)) * 100) / 3 ;
-					stDensityData.fDensity =((( (float)(nCnt - 3) /( (float)(stPDWData.stPDW[nCnt-1].llTOA - stPDWData.stPDW[3].llTOA) /  (float)(122000 * m_stCurTaskData.uiAcquisitionTime)) )) * 100.0) / 50000.0 ;					
+					stDensityData.fDensity =((( (float)(nCnt - 3) /( (float)(stPDWData.pstPDW[nCnt-1].ullTOA - stPDWData.pstPDW[3].ullTOA) /  (float)(122000 * m_stCurTaskData.uiAcquisitionTime)) )) * 100.0) / 50000.0 ;					
 				
 					if(stDensityData.fDensity < 0)
 					{
@@ -1100,17 +1102,17 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 						TRACE("======= RESULT AOA  VAL  %d =======\n", i_AOA);
 						//값 확인 필요 pPDW->iFreq, pPDW->iPulseType, pPDW->iPA, pPDW->iPW, pPDW->llTOA
-						pPDWToAOA->iFreq = freqLOB;
-						pPDWToAOA->iAOA = i_AOA;
-						pPDWToAOA->iPulseType = pPDW->iPulseType;
-						pPDWToAOA->iPA = pPDW->iPA;
-						pPDWToAOA->iPW = pPDW->iPW;
-						pPDWToAOA->ullTOA = pPDW->llTOA;		
-						pPDWToAOA->iPFTag = pPDW->iPFTag;
-						pPDWToAOA->fPh1 = fph[1];
-						pPDWToAOA->fPh2 = fph[2];
-						pPDWToAOA->fPh3 = fph[3];
-						pPDWToAOA->fPh4 = fph[4];
+						pPDWData->uiFreq = freqLOB;
+						pPDWData->uiAOA = i_AOA;
+						pPDWData->iPulseType = pPDW->iPulseType;
+						pPDWData->uiPA = pPDW->iPA;
+						pPDWData->uiPW = pPDW->iPW;
+						pPDWData->ullTOA = pPDW->llTOA;		
+						pPDWData->iPFTag = pPDW->iPFTag;
+						pPDWData->fPh1 = fph[1];
+						pPDWData->fPh2 = fph[2];
+						pPDWData->fPh3 = fph[3];
+						pPDWData->fPh4 = fph[4];
 
 						bufcnt++;
 					}
@@ -1120,11 +1122,12 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				if(i > 3) 
 				{
 					++ pPDW;
-					++ pPDWToAOA;
+					++ pPDWData;
 				}
 			}			
 
-			stPDWDataToAOA.uiTotalPDW = bufcnt;				// 수집 PDW 개수는 최대 4096 개
+            stPDWData.SetTotalPDW( bufcnt );
+			//stPDWData.uiTotalPDW = bufcnt;				// 수집 PDW 개수는 최대 4096 개
 
 			//재귀호출
 			if(m_iMode == MODE_INIT_TYPE || m_iMode == MODE_CH_TYPE) // 채널보정
@@ -1206,7 +1209,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 				///////////////////////////////////////////////////////////////////////////////
 				//조철희 수석님의 PDW데이타에서 LOB 추출 알고리즘 호출			
-				RadarDirAlgotirhm::RadarDirAlgotirhm::Start( & stPDWDataToAOA );
+				RadarDirAlgotirhm::RadarDirAlgotirhm::Start( & stPDWData );
 
 				int nCoLOB=RadarDirAlgotirhm::RadarDirAlgotirhm::GetCoLOB();
 
@@ -1215,7 +1218,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 				//TRACE("**************[송신]레이더방탐-레이더분석 LOB 전송 개수%d============\n", nCoLOB);
 
-				sprintf( stMsg.szContents, "레이더방탐-레이더분석 LOB 전송/PDW 개수 : %d, %d", nCoLOB, stPDWDataToAOA.uiTotalPDW );
+				sprintf( stMsg.szContents, "레이더방탐-레이더분석 LOB 전송/PDW 개수 : %d, %d", nCoLOB, stPDWData.GetTotalPDW() );
 				::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND, (LPARAM) & stMsg.szContents[0] );
 
 				SRxLOBData *ppLOBData=pLOBData;
@@ -1233,7 +1236,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				/*if(bRtnSend == true)
 				{
 				TRACE("[송신]레이더방탐-레이더분석 혼잡도 %d 전송\n", stDensityData.fDensity);
-				}ㄴ
+				}
 				else
 				{
 				TRACE("[송신 실패]레이더방탐-레이더분석 혼잡도 %d 전송\n", stDensityData.fDensity);
@@ -1258,7 +1261,10 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				//ReqPDWNextTask(m_bIsTaskStop);
 				/////////분석에서 과제관리해서 주석처리///////////
 			}
+
+            free( stPDWData.pstPDW );
 		}
+
 		break;
 
 		//IQ 결과
@@ -1267,7 +1273,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 			TRACE("[수신]PDW-레이더방탐 IQ결과 \n");
 			//m_nStep++;
 
-			RX_STR_PDWDATA stPDWData;
+			//RX_STR_PDWDATA stPDWData;
 			TRACE("recv IQ buf size %d\n", i_stMsg.usMSize);
 					
 			_IQ *pIQ;		
@@ -1412,7 +1418,7 @@ void CDFTaskMngr::StopRetryCollectStatusTimer()
 	if ( m_hRetryColectTimerQueue == NULL )
 		return;
 
-	bool bRtn = DeleteTimerQueueTimer(m_hRetryColectTimerQueue, m_hRetryColectStatTimer, NULL);
+	BOOL bRtn = DeleteTimerQueueTimer(m_hRetryColectTimerQueue, m_hRetryColectStatTimer, NULL);
 
 	if(bRtn)
 	{
