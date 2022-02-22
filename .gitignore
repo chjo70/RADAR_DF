@@ -8,3 +8,7 @@
 *.lastbuildstate
 *.idb
 *.ilk
+*.unsuccessfulbuild
+*.res
+Release*/
+Debug*/
