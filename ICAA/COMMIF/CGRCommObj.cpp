@@ -3152,7 +3152,7 @@ void CGRCommObj::UpdateRecvMsgInfo(unsigned int i_uiSeqNo)
 		}
 		else if ( (m_uiLinkRecvSeqNo+1) < i_uiSeqNo )
 		{			
-			for ( int i = (m_uiLinkRecvSeqNo+1); i < i_uiSeqNo; i++ )
+			for ( unsigned int i = (m_uiLinkRecvSeqNo+1); i < i_uiSeqNo; i++ )
 			{
 				InsertUnRecvMsgSeqNo(i);
 				m_uiUnRecvMsgCnt++;
