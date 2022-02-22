@@ -2145,7 +2145,7 @@ int CDFTaskMngr::GetCloseDFFreq(UINT Freq)
 			break;
 		}
 
-		if( nFreq >=  Freq)  
+		if( nFreq >= (int)Freq )  
 		{
 			bigDiff = abs(nFreq  - (int)Freq);
 			break;
