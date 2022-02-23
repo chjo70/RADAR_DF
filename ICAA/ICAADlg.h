@@ -12,7 +12,7 @@
 
 // CICAADlg 대화 상자
 
-#define     MAX_LOGCOUNT        (100)
+#define     MAX_LOGCOUNT        (1000)
 
 class CICAADlg : public CDialogEx
 {

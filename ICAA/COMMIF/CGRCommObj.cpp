@@ -3291,7 +3291,7 @@ void CGRCommObj::SetConnectionInfo(int i_iConnectionType, bool i_bConnection)
 			::SendMessage( g_DlgHandle, UWM_USER_STAT_MSG, (WPARAM) enRADARRD, (LPARAM) TRUE );
 		}
 
-		TRACE ("[PORT : %d,  연결성공]\n", iPort);
+		//TRACE ("[PORT : %d,  연결성공]\n", iPort);
 		
 	}
 	else

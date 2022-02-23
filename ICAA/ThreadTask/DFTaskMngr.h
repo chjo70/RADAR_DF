@@ -13,7 +13,7 @@
 #include <list>
 #include "math.h"
 
-#define COMINT_MAX_CHANNEL_COUNT	5			// COMIT 방탐 최대 채널 수
+
 #define COLSTAT_INTERVAL	1000
 #define COLSTAT_START_INTERVAL 1000
 #define PDWCONNSTAT_INTERVAL 3000
@@ -108,13 +108,16 @@ public:
 	HANDLE	m_hSignalIQFileEvent;
 	bool	m_IQFileInit;
 	UINT		m_dwID;
-	
+
 	void    ThreadIQFile();
 	static UINT __stdcall  IQFileThread(void* pThis);
 	deque <STR_IQDATA> m_IQDataStore;
 	CRITICAL_SECTION m_csIQFile;
 	unsigned int m_uiIQSize;
-		
+
+	//Add Onpoom Healoox
+	UINT miAntPathDir;
+
 	void ReqTaskRetry();
 	void RetryCollectStatusReq();
 	void CheckPDWConnStatus();

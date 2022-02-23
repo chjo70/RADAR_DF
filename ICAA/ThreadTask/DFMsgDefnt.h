@@ -124,6 +124,18 @@ enum ACQ_START_REQ
 		ACQ_RESTART,
 		ACQ_PAUSE
 };
+
+
+// Onpoom Haeloox
+enum ANT_PATH_DIR
+{
+	ANT_PATH_N,
+	ANT_PATH_E,
+	ANT_PATH_S,
+	ANT_PATH_W,
+	ANT_PATH_MAX,
+};
+
  
 #define LENGTH_OF_TASK_ID			(19+1)		//과제ID 문자열 길이 (TBD)
 
@@ -239,9 +251,11 @@ struct SRxTSGCtrlResult{    //수집시작 결과
 struct STxAcqStartRequest{   //수집시작 요구
 	UINT	uiMode;
 	UINT	uiStartLOBId;
+	UINT	uiAntPathDir;
 	STxAcqStartRequest() :
 	uiMode(0),
-	uiStartLOBId(0)
+	uiStartLOBId(0),
+	uiAntPathDir(0)
 	{
 	}
 };

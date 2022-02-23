@@ -75,10 +75,21 @@ struct _stBigArray
 //};
 
 
-
+/*
 extern "C" __declspec(dllexport) float DllDoCvDfAlgoOperation(INT    iSetFreqPt,      // 주파수 인덱스
 	float	*fChcalPhDiff,    // 채널보정데이터 float타입 5채널 degree
 	float	*fMeasPhDiff     // 수집데이터     float타입 5채널 degree
 	,_stBigArray *pstBigArray // 방사보정데이터 degree x 100 값
+	);
+	*/
+
+
+
+extern "C" __declspec(dllexport) float DllDoCvDfAlgoOperation(INT    iSetFreqPt,      // 주파수 인덱스
+	float	*fChcalPhDiff,    // 채널보정데이터 float타입 5채널 degree
+	float	*fMeasPhDiff,     // 수집데이터     float타입 5채널 degree
+	_stBigArray *pstBigArray, // 방사보정데이터 degree x 100 값
+	unsigned short usStartAngle,
+	unsigned short usEndAngle
 	);
 

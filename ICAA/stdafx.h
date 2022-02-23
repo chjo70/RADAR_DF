@@ -89,7 +89,7 @@ typedef enum {
 
 typedef struct {
 	enENUM_ITEM enItemType;
-	char szContents[100];
+	char szContents[200];
 
 } STR_LOGMESSAGE ;
 
