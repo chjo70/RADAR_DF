@@ -41,6 +41,9 @@ struct STMsg;
 
 class CDFTaskMngr : public CMsgQueueThread, public CCommonMngr
 {
+private:
+	unsigned int m_uiPDWID;
+
 public:
 	CDFTaskMngr();
 	~CDFTaskMngr(void);

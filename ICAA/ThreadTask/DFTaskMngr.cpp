@@ -16,6 +16,7 @@
 #define ROUNDING(x, dig) (floor((x) *pow(float(10), dig) + 0.5f) /pow(float(10), dig))
 #define CSV_BUF				30
 #define PH_DIFF				1.40625
+//#define PH_DIFF				1.0
 #define TASK_ACQTIME		1000000
 #define TASK_RQADDCNT		5
 #define IQ_PACKET_SIZE    16384
@@ -306,6 +307,8 @@ CDFTaskMngr::CDFTaskMngr()
 	//StartCheckPDWConTimer();
 	//if(m_hCommIF.GetPDWConnStatus() == true)
 	//StartChannelCorrect(MODE_INIT_TYPE);
+
+	m_uiPDWID = 1;
 }
 
 CDFTaskMngr::~CDFTaskMngr()
@@ -861,9 +864,10 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				int DoneFlag = 8;
 				int isbDone = 0;
 				isbDone = DoneFlag & stColectDoneStat.uiDoneStatus; 
+				//isbDone = 1;
 				TRACE("PDW 수집완료 상태 Flag %d \n", isbDone);
 			
-				if(isbDone != 1 ||  stColectDoneStat.iNumOfPDW < 3 /*|| m_bPdwCntZeroFlag == true*/)  
+				if(/*isbDone != 1 ||*/  stColectDoneStat.iNumOfPDW < 3 /*|| m_bPdwCntZeroFlag == true*/)  
 				{				
 					if(m_hRetryColectTimerQueue == NULL)
 					{							
@@ -1011,9 +1015,9 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 			//////////////LOB데이터 생성
 			memcpy(stPDWData.x.el.aucTaskID, stRXPDWData.aucTaskID, sizeof(stRXPDWData.aucTaskID));
 			//stPDWDataToAOA.iIsStorePDW = stPDWData.stPDW;			// 0 또는 1, PDW 저장되었으면 1로 설정함.
-			stPDWData.x.el.iCollectorID = stRXPDWData.iCollectorID;			// 1, 2, 3 중에 하나이어야 한다. (수집소)			
+			stPDWData.x.el.enCollectorID = (EN_RADARCOLLECTORID) stRXPDWData.iCollectorID;			// 1, 2, 3 중에 하나이어야 한다. (수집소)			
 			stPDWData.x.el.iIsStorePDW = 1;
-
+			stPDWData.x.el.stCommon.uiPDWID = m_uiPDWID++;
 
 			struct timeval time_spec; 
 			
@@ -1113,7 +1117,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 						i_AOA = GetAOADataFromAlgrism(iCloseFreq, idxFreq, fph) ;
 						TRACE("=======  ORA AOA  VAL  %d =======\n", i_AOA);
 						//i_AOA = AOA_BASE - i_AOA;
-						i_AOA += ((miAntPathDir * 90) - 6000);
+						i_AOA += ((miAntPathDir * 9000) - 6000);
 						i_AOA += m_iAOAOffset;
 						TRACE("=======  ORA+OFFSET AOA  VAL  %d =======\n", i_AOA);
 
@@ -1296,7 +1300,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				else {
 					/////////분석에서 과제관리해서 주석처리///////////
 					//다음과제에 대해 PDW요청
-					ReqPDWNextTask(m_bIsTaskStop);
+					ReqPDWNextTask(false);
 					/////////분석에서 과제관리해서 주석처리///////////			
 				}
 
@@ -1900,11 +1904,21 @@ BOOL CDFTaskMngr::LoadDfCalRomDataPh()
 
 	for(int iAntIdx = 0 ; iAntIdx < ANT_PATH_MAX ; iAntIdx++)
 	{
-		m_strAntFullFileName.Format("C:\\IdexFreq\\LIG_MF_Data_%d.txt", miAntPathDir);
+		m_strAntFullFileName.Format("C:\\IdexFreq\\LIG_MF_Data_%d.txt", iAntIdx);
 		memset(arrpBigArray[iAntIdx]->m_usPhDfRomData,        0, sizeof(arrpBigArray[iAntIdx]->m_usPhDfRomData));//LMS_MODIFY_20171222   memset(m_usPhDfRomData,  0, sizeof(m_usPhDfRomData));  // 방사보정용 위상 ROM 데이터[채널][방위][주파수] 멤버 변수 초기화
 		memset(arrpBigArray[iAntIdx]->m_iRadicalDataFreqMHz,  0, sizeof(arrpBigArray[iAntIdx]->m_iRadicalDataFreqMHz)); //LMS_ADD_20220206
 
 		fpFile = fopen(m_strAntFullFileName, "rt");
+
+		fGetGenFreq = 0;
+		fGetGenBearOld = 0;
+		fGetGenBear = 0;
+		fGetGenFreqOld = 0;
+		uiBand = 0;
+		uiFreqRangeStartMHzTemp = 0;
+		uiFreqReadStartMHzTemp = 0;
+		uiFreqReadEndMHzTemp = 0;
+		
 
 		if (fpFile == NULL)
 		{
@@ -2277,7 +2291,7 @@ void CDFTaskMngr::StartChannelCorrect(int i_nModeType)
 	}
 	
 	set_collect.uiAcquisitionTime = 100000000;
-	set_collect.uiNumOfAcqPulse = 10;
+	set_collect.uiNumOfAcqPulse = 100;
 	set_collect.uiNBDRBandwidth = 1;	
 	set_collect.uiMode = ACQ_START;
 
@@ -2550,8 +2564,17 @@ void CDFTaskMngr::SetFreqToRadarUnit(UINT Freq)
 	Sleep(100);
 	*/
 
-	uifrequency = 1;
-	strcommand.Format("SENSe:BANDwidth:RFConverter %I64d", uifrequency);
+	int iBwIdx = 0;
+	if(m_stCurTaskData.uiNBDRBandWidth == 0)
+	{
+		iBwIdx = 2;
+	}
+	else
+	{
+		iBwIdx = 3;
+	}
+	
+	strcommand.Format("SENSe:BANDwidth:RFConverter %d", iBwIdx);
 	bfail = g_RcvFunc.SCPI_CommendWrite(strcommand);
 	TRACE("BANDWITH %d\n", bfail);
 
