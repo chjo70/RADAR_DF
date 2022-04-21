@@ -43,6 +43,15 @@ class CDFTaskMngr : public CMsgQueueThread, public CCommonMngr
 {
 private:
 	unsigned int m_uiPDWID;
+    LONG m_lOpInitID;
+
+public:
+    bool m_bChStep;
+    char m_filename[100];
+    char m_szDirectory[100];
+
+    //test
+    bool m_bTurnButten;
 
 public:
 	CDFTaskMngr();
@@ -60,26 +69,26 @@ public:
 	static CDFTaskMngr* m_pInstance;
 	CGRCommIF& m_hCommIF_DFTaskMngr;
 
-	CRcvFuncTCP g_RcvFunc;
-	CRcvFuncTCP *g_RcvTempFunc;
+    CRcvFuncTCP g_RcvFunc;
+    CRcvFuncTCP *g_RcvTempFunc;
 
-	int m_LinkInfo;
-	int m_POSNIP;
-	CString m_strFilePath_Chennel;
-	int m_iMode;
-	UINT m_Freq;
+    int m_LinkInfo;
+    int m_POSNIP;
+    CString m_strFilePath_Chennel;
+    int m_iMode;
+    UINT m_Freq;
 
-	int m_pdwCntZero;
-	bool m_bisRetrySigz;
-	CString m_strAntFullFileName;
-	int m_iTaskCnt;
-	int m_iNextTaskCnt;
-	int m_iTotCoretFreqDataCnt;
-	int m_iIncrCoretFreqCnt;
-	int m_RetryCnt;
-	int m_RetryAginCnt;
-	bool m_bIsTaskStop;
-	int m_iAOAOffset;
+    int m_pdwCntZero;
+    bool m_bisRetrySigz;
+    CString m_strAntFullFileName;
+    int m_iTaskCnt;
+    int m_iNextTaskCnt;
+    int m_iTotCoretFreqDataCnt;
+    int m_iIncrCoretFreqCnt;
+    int m_RetryCnt;
+    int m_RetryAginCnt;
+    bool m_bIsTaskStop;
+    int m_iAOAOffset;
 
 	STxSystemVariable m_stSystemVal;
 
@@ -163,17 +172,13 @@ public:
 
 	int gettimeofday(struct timeval * tp, struct timezone * tzp);
 
+    inline LONG GetOPInitID() { return m_lOpInitID; }
+
 	void testTask();
 	CString GetModulePath();
 	void AlgrismInit();
 	void SaveAll_IQFile();
 	BOOL CreateDir( char *pPath );
 
-	bool m_bChStep;
-	char m_filename[100];
-	char m_szDirectory[100];
-
-	//test
-	bool m_bTurnButten;
 
 };

@@ -141,7 +141,11 @@ BOOL CICAADlg::OnInitDialog()
 
 	g_DlgHandle = GetSafeHwnd();
 
-	this->SetWindowText("레이더 방탐 소프트웨어");
+    char buffer[100];
+
+    m_lOpInitID = m_DFTaskMngr.GetOPInitID();
+    sprintf( buffer, "레이더 방탐 소프트웨어[%d]" , m_lOpInitID );
+	this->SetWindowText( buffer );
 	//CICAAMngr::GetInstance();
 	CADSBReceivedProcessMngr::GetInstance();
 

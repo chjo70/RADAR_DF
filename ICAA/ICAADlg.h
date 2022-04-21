@@ -16,6 +16,9 @@
 
 class CICAADlg : public CDialogEx
 {
+private:
+    LONG m_lOpInitID;
+
 // 생성입니다.
 public:
 	CICAADlg(CWnd* pParent = NULL);	// 표준 생성자입니다.

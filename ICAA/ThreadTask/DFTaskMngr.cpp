@@ -252,7 +252,8 @@ CDFTaskMngr::CDFTaskMngr()
 	fout.close();*/
 
 	// 시작시 한번만 호출하면 됩니다.
-	RadarDirAlgotirhm::RadarDirAlgotirhm::Init( );
+	RadarDirAlgotirhm::RadarDirAlgotirhm::Init();
+    m_lOpInitID=RadarDirAlgotirhm::RadarDirAlgotirhm::GetOPInitID();
 
 	//안테나보정데이터 로딩
 	LoadDfCalRomDataPh();
@@ -1013,11 +1014,11 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 			pPDWData = & stPDWData.pstPDW[0];
 
 			//////////////LOB데이터 생성
-			memcpy(stPDWData.x.el.aucTaskID, stRXPDWData.aucTaskID, sizeof(stRXPDWData.aucTaskID));
+			memcpy(stPDWData.x.xb.aucTaskID, stRXPDWData.aucTaskID, sizeof(stRXPDWData.aucTaskID));
 			//stPDWDataToAOA.iIsStorePDW = stPDWData.stPDW;			// 0 또는 1, PDW 저장되었으면 1로 설정함.
-			stPDWData.x.el.enCollectorID = (EN_RADARCOLLECTORID) stRXPDWData.iCollectorID;			// 1, 2, 3 중에 하나이어야 한다. (수집소)			
-			stPDWData.x.el.iIsStorePDW = 1;
-			stPDWData.x.el.stCommon.uiPDWID = m_uiPDWID++;
+			stPDWData.x.xb.enCollectorID = (EN_RADARCOLLECTORID) stRXPDWData.iCollectorID;			// 1, 2, 3 중에 하나이어야 한다. (수집소)			
+			stPDWData.x.xb.iIsStorePDW = 1;
+			stPDWData.x.xb.stCommon.uiPDWID = m_uiPDWID++;
 
 			struct timeval time_spec; 
 			
@@ -1026,9 +1027,9 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 			/* data 확인 필요 */
 			if(m_stCurTaskData.uiNBDRBandWidth == 1)
-				stPDWData.x.el.enBandWidth = en50MHZ_BW;
+				stPDWData.x.xb.enBandWidth = XBAND::en150MHZ_BW;
 			else
-				stPDWData.x.el.enBandWidth = en5MHZ_BW;
+				stPDWData.x.xb.enBandWidth = XBAND::en5MHZ_BW;
 			//////////////LOB데이터 생성
 
 			int Freq, freqLOB;
@@ -1082,8 +1083,21 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 					Freq = m_Freq;
 				else
 				{
-					Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq + (short)pPDW->iFreq) / 1000), 0);
-					freqLOB = m_stCurTaskData.uiFreq + (short)pPDW->iFreq;
+
+// 					Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)) / 1000), 0);
+// 					freqLOB = m_stCurTaskData.uiFreq - (short)(pPDW->iFreq) ;
+
+					if(Freq < 8100) //haeloox
+					{
+						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)*10)  / 1000), 0);
+						freqLOB = m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)*10 ;
+					}
+					else
+					{
+						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)*10) / 1000), 0);
+						freqLOB = m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)*10 ;
+					}
+					
 				}
 				
 				fph[0] = (float) (pPDW->iph[0] * PH_DIFF);
@@ -1239,6 +1253,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				RadarDirAlgotirhm::RadarDirAlgotirhm::Start( & stPDWData );
 
 				int nCoLOB=RadarDirAlgotirhm::RadarDirAlgotirhm::GetCoLOB();
+                //LONG lOpInitID=RadarDirAlgotirhm::RadarDirAlgotirhm::GetOPInitID();
 
 				SRxLOBData *pLOBData=RadarDirAlgotirhm::RadarDirAlgotirhm::GetLOBData();
 				///////////////////////////////////////////////////////////////////////////////
