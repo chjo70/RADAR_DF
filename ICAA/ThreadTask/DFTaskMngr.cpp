@@ -302,6 +302,7 @@ CDFTaskMngr::CDFTaskMngr()
 	m_bTurnButten = false;
 
 	g_RcvFunc.m_strIP = "127.0.0.1";
+	//g_RcvFunc.m_strIP = "30.30.30.241";
 	g_RcvFunc.m_iPort = 5050;
 	//채널보정 시작
 	//PDE발생판 연결상태 확인 후 호출
@@ -1084,18 +1085,18 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				else
 				{
 
-// 					Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)) / 1000), 0);
-// 					freqLOB = m_stCurTaskData.uiFreq - (short)(pPDW->iFreq) ;
+					/*	Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)) / 1000), 0);
+					freqLOB = m_stCurTaskData.uiFreq + (short)(pPDW->iFreq) ;*/
 
 					if(Freq < 8100) //haeloox
 					{
-						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)*10)  / 1000), 0);
-						freqLOB = m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)*10 ;
+						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq - (short)(pPDW->iFreq))*10 / 1000), 0);
+						freqLOB = m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)*10 ;
 					}
 					else
 					{
-						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)*10) / 1000), 0);
-						freqLOB = m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)*10 ;
+						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq + (short)(pPDW->iFreq))*10 / 1000), 0);
+						freqLOB = m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)*10 ;
 					}
 					
 				}
@@ -1274,7 +1275,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 					SRxLOBData *ppLOBData=pLOBData;
 					for( i=0 ; i < nCoLOB ; ++i ) {
-						sprintf( stMsg.szContents, "  [#%02d] %s %04.1f %s(%.3f, %.3f) %s(%.1f,%.1f),[%2d] %.1fdBm(%.1f,%.1f) %.1f[ns](%.1f,%.1f)", i+1, g_szAetSignalType[ppLOBData->iSignalType], ppLOBData->fDOAMean, g_szAetFreqType[ppLOBData->iFreqType], ppLOBData->fFreqMin, ppLOBData->fFreqMax, g_szAetPriType[ppLOBData->iPRIType], ppLOBData->fPRIMin, ppLOBData->fPRIMax, ppLOBData->iPRIPositionCount, ppLOBData->fPAMean, ppLOBData->fPAMin, ppLOBData->fPAMax, ppLOBData->fPWMean, ppLOBData->fPWMin, ppLOBData->fPWMax );
+						sprintf( stMsg.szContents, "  [#%02d] %s %04.1f %s(%.3f, %.3f) %s(%.1f,%.1f),[%2d] %.1fdBm(%.1f,%.1f) %.1f[ns](%.1f,%.1f)[%d]", i+1, g_szAetSignalType[ppLOBData->iSignalType], ppLOBData->fDOAMean, g_szAetFreqType[ppLOBData->iFreqType], ppLOBData->fFreqMin, ppLOBData->fFreqMax, g_szAetPriType[ppLOBData->iPRIType], ppLOBData->fPRIMin, ppLOBData->fPRIMax, ppLOBData->iPRIPositionCount, ppLOBData->fPAMean, ppLOBData->fPAMin, ppLOBData->fPAMax, ppLOBData->fPWMean, ppLOBData->fPWMin, ppLOBData->fPWMax, ppLOBData->iNumOfPDW );
 						::SendMessage( g_DlgHandle, UWM_USER_LOG_MSG, (WPARAM) enSEND, (LPARAM) & stMsg.szContents[0] );
 						++ ppLOBData;
 					}
@@ -1564,10 +1565,10 @@ void CDFTaskMngr::RetrySignalSend()
 		m_RetryAginCnt =0;
 	}
 
-	strcommand.Format("SENSe:GCONtrol %I64d", uifrequency);
-	bfail = g_RcvTempFunc->SCPI_CommendWrite(strcommand);	
-//	g_RcvTempFunc->Finish();
-	TRACE("GCONtrol %d\n", bfail);
+// 	strcommand.Format("SENSe:GCONtrol %I64d", uifrequency);
+// 	bfail = g_RcvTempFunc->SCPI_CommendWrite(strcommand);	
+// //	g_RcvTempFunc->Finish();
+// 	TRACE("GCONtrol %d\n", bfail);
 
 	int opcode_Coll = MakeOPCode(CMDCODE_DF_TX_PDW_COLECT_SET, DEVICECODE_TRD, DEVICECODE_TDP); //신호수집 설정
 
@@ -2285,6 +2286,10 @@ void CDFTaskMngr::StartChannelCorrect(int i_nModeType)
 	//g_RcvTempFunc->Finish();
 	
 	TRACE("result_1 %d\n", bfail);
+
+	strcommand.Format("SENSe:BANDwidth:RFConverter 1");
+	bfail = g_RcvFunc.SCPI_CommendWrite(strcommand);
+	TRACE("BANDWITH %d\n", bfail);
 
 	INT64 iGain = -30;
 	//INT64 iGain = 0;
