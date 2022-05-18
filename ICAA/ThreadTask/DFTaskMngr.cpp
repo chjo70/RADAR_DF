@@ -121,7 +121,7 @@ CDFTaskMngr::CDFTaskMngr()
 	m_LinkInfo = 0;
 	m_POSNIP = GetLastIP();
 	m_strAntFullFileName = _T("");
-	m_iAOAOffset = 0;
+	
 
 	//FOR TEST
 	//m_LinkInfo = LINK1_ID;
@@ -130,7 +130,7 @@ CDFTaskMngr::CDFTaskMngr()
 
 	m_LinkInfo = LINK1_ID;
 	m_strAntFullFileName.Format("C:\\IdexFreq\\LIG_MF_Data_no1.txt"); 
-	m_iAOAOffset = 0;
+	m_iAOAOffset = -1240;
 	m_stSystemVal.uiCollectorID = LINK1_ID;
 	
 	/*
@@ -1085,18 +1085,19 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 				else
 				{
 
+
 					/*	Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)) / 1000), 0);
 					freqLOB = m_stCurTaskData.uiFreq + (short)(pPDW->iFreq) ;*/
 
 					if(Freq < 8100) //haeloox
 					{
-						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq - (short)(pPDW->iFreq))*10 / 1000), 0);
-						freqLOB = m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)*10 ;
+						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)*10) / 1000), 0);
+						freqLOB = m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)*10 ;
 					}
 					else
 					{
-						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq + (short)(pPDW->iFreq))*10 / 1000), 0);
-						freqLOB = m_stCurTaskData.uiFreq + (short)(pPDW->iFreq)*10 ;
+						Freq = ROUNDING(((float)(m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)*10)/ 1000), 0);
+						freqLOB = m_stCurTaskData.uiFreq - (short)(pPDW->iFreq)*10 ;
 					}
 					
 				}

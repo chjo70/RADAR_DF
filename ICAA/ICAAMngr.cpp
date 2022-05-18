@@ -10,7 +10,7 @@ CICAAMngr::CICAAMngr()
 {
 	// ini파일에서 Server/Client 관련 정보 얻어오기
 	char readBuf[100] = {0};
-	char *envini_path = ("..\\ICAA\\config.ini");
+	char *envini_path = (".\\config.ini");
 	CString	cstrServerClient = CString("");
 	GetPrivateProfileString(("SERVER/CLIENT/ADSBD"), ("MODE"), NULL, readBuf, _countof(readBuf), envini_path);
 	cstrServerClient.Format(("%s"), readBuf);	// SERVER or CLIENT
