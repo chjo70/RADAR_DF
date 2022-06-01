@@ -43,7 +43,7 @@ class CDFTaskMngr : public CMsgQueueThread, public CCommonMngr
 {
 private:
 	unsigned int m_uiPDWID;
-    LONG m_lOpInitID;
+    unsigned int m_uiOpInitID;
 
 public:
     bool m_bChStep;
@@ -172,7 +172,7 @@ public:
 
 	int gettimeofday(struct timeval * tp, struct timezone * tzp);
 
-    inline LONG GetOPInitID() { return m_lOpInitID; }
+    inline unsigned int GetOPInitID() { return m_uiOpInitID; }
 
 	void testTask();
 	CString GetModulePath();

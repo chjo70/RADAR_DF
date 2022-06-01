@@ -6,7 +6,7 @@
 #include "ICAA.h"
 #include "ICAADlg.h"
 
-#include "ThreadTask\\DFTaskMngr.h"
+#include "ThreadTask/DFTaskMngr.h"
 #include "ADSBReceivedProcessMngr.h"
 
 #include "afxdialogex.h"
@@ -122,6 +122,9 @@ BOOL CICAADlg::OnInitDialog()
 	//  프레임워크가 이 작업을 자동으로 수행합니다.
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
+
+    _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+    //_CrtSetBreakAlloc(11477);
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	// 최상단 메뉴 틀 제공

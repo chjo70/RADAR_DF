@@ -253,7 +253,7 @@ CDFTaskMngr::CDFTaskMngr()
 
 	// 시작시 한번만 호출하면 됩니다.
 	RadarDirAlgotirhm::RadarDirAlgotirhm::Init();
-    m_lOpInitID=RadarDirAlgotirhm::RadarDirAlgotirhm::GetOPInitID();
+    m_uiOpInitID=RadarDirAlgotirhm::RadarDirAlgotirhm::GetOpInitID();
 
 	//안테나보정데이터 로딩
 	LoadDfCalRomDataPh();
@@ -1028,7 +1028,7 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 
 			/* data 확인 필요 */
 			if(m_stCurTaskData.uiNBDRBandWidth == 1)
-				stPDWData.x.xb.enBandWidth = XBAND::en150MHZ_BW;
+				stPDWData.x.xb.enBandWidth = XBAND::en120MHZ_BW;
 			else
 				stPDWData.x.xb.enBandWidth = XBAND::en5MHZ_BW;
 			//////////////LOB데이터 생성
@@ -1152,10 +1152,11 @@ void CDFTaskMngr::ProcessMsg(STMsg& i_stMsg)
 						pPDWData->uiPW = pPDW->iPW;
 						pPDWData->ullTOA = pPDW->llTOA;		
 						pPDWData->iPFTag = pPDW->iPFTag;
-						pPDWData->fPh1 = fph[1];
-						pPDWData->fPh2 = fph[2];
-						pPDWData->fPh3 = fph[3];
-						pPDWData->fPh4 = fph[4];
+						pPDWData->x.xb.fPh1 = fph[0];
+						pPDWData->x.xb.fPh2 = fph[1];
+						pPDWData->x.xb.fPh3 = fph[2];
+						pPDWData->x.xb.fPh4 = fph[3];
+                        pPDWData->x.xb.fPh5 = fph[4];
 
 						bufcnt++;
 					}
